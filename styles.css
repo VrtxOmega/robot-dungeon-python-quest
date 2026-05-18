@@ -156,7 +156,7 @@ button:disabled {
 .app-shell {
   width: min(1280px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 24px 0 30px;
+  padding: 18px 0 28px;
 }
 
 .topbar, .mission-panel, .world-map-panel, .play-layout, .progress-panel {
@@ -165,11 +165,11 @@ button:disabled {
 
 .topbar {
   display: grid;
-  grid-template-columns: 1fr minmax(260px, 360px) auto auto auto auto;
-  gap: 16px;
+  grid-template-columns: minmax(270px, 1fr) minmax(240px, 320px) auto minmax(230px, 280px) auto auto;
+  gap: 12px;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 16px;
+  margin-bottom: 12px;
+  padding: 12px;
   border: 1px solid rgba(246, 200, 95, 0.26);
   border-radius: 8px;
   background:
@@ -179,9 +179,9 @@ button:disabled {
 }
 
 .brand h1 {
-  margin: 4px 0 0;
-  font-size: clamp(32px, 5vw, 64px);
-  line-height: 0.95;
+  margin: 2px 0 0;
+  font-size: clamp(32px, 4.2vw, 54px);
+  line-height: 0.92;
   color: #fff7df;
   text-shadow: 0 0 18px rgba(246, 200, 95, 0.24), 0 10px 30px rgba(0, 0, 0, 0.28);
 }
@@ -212,11 +212,11 @@ button:disabled {
 
 .profile-card {
   display: grid;
-  grid-template-columns: 58px 1fr;
-  gap: 12px;
+  grid-template-columns: 50px 1fr;
+  gap: 10px;
   align-items: center;
-  min-height: 72px;
-  padding: 10px 12px;
+  min-height: 60px;
+  padding: 8px 10px;
   border: 1px solid rgba(246, 200, 95, 0.26);
   border-radius: 8px;
   background:
@@ -229,14 +229,14 @@ button:disabled {
 .profile-avatar {
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.42), transparent 25%),
     linear-gradient(135deg, var(--profile-a), var(--profile-b));
   color: #ffffff;
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 900;
   box-shadow: 0 12px 24px var(--profile-glow);
 }
@@ -244,12 +244,12 @@ button:disabled {
 .profile-card strong {
   display: block;
   margin-top: 2px;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .profile-card p {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   color: var(--text-soft);
   font-size: 13px;
   line-height: 1.25;
@@ -270,7 +270,7 @@ button:disabled {
 
 .level-picker {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   color: #f7ead0;
 }
 
@@ -291,10 +291,10 @@ button:disabled {
 .mission-panel, .progress-panel {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 20px;
+  margin-bottom: 12px;
+  padding: 14px 18px;
   border: 1px solid rgba(246, 200, 95, 0.32);
   border-radius: 8px;
   background:
@@ -305,19 +305,19 @@ button:disabled {
 }
 
 .mission-title-block {
-  min-width: 230px;
+  min-width: 220px;
 }
 
 .mission-panel h2 {
-  margin: 3px 0 0;
-  font-size: clamp(24px, 3vw, 38px);
+  margin: 2px 0 0;
+  font-size: clamp(24px, 2.6vw, 34px);
   color: #24133e;
 }
 
 .mission-instructions {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   flex: 1;
   min-width: 0;
@@ -327,7 +327,7 @@ button:disabled {
   max-width: 680px;
   margin: 0;
   color: #2b2142;
-  font-size: clamp(20px, 2.2vw, 31px);
+  font-size: clamp(19px, 2vw, 28px);
   font-weight: 900;
   line-height: 1.16;
 }
@@ -337,8 +337,8 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 142px;
-  min-height: 52px;
+  min-width: 136px;
+  min-height: 46px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
     linear-gradient(135deg, var(--purple), var(--blue));
@@ -364,7 +364,7 @@ button:disabled {
 .stars {
   min-width: 128px;
   color: #c27b00;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 900;
   text-align: right;
   text-shadow: 0 0 16px rgba(246, 200, 95, 0.45);
@@ -378,8 +378,8 @@ button:disabled {
 }
 
 .world-map-panel {
-  margin-bottom: 16px;
-  padding: 16px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
   border: 1px solid rgba(246, 200, 95, 0.24);
   border-radius: 8px;
   background:
@@ -393,13 +393,13 @@ button:disabled {
   justify-content: space-between;
   gap: 14px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .world-map-header strong {
   display: block;
-  margin-top: 3px;
-  font-size: 20px;
+  margin-top: 2px;
+  font-size: 18px;
 }
 
 .map-key {
@@ -423,10 +423,10 @@ button:disabled {
 .world-map {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(12, minmax(78px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(12, minmax(68px, 1fr));
+  gap: 8px;
   overflow-x: auto;
-  padding: 6px 2px 10px;
+  padding: 4px 2px 6px;
 }
 
 .world-map::before {
@@ -434,8 +434,8 @@ button:disabled {
   position: absolute;
   left: 28px;
   right: 28px;
-  top: 44px;
-  height: 5px;
+  top: 34px;
+  height: 4px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(246, 200, 95, 0.35), rgba(48, 213, 222, 0.26), rgba(34, 160, 107, 0.28));
 }
@@ -445,10 +445,10 @@ button:disabled {
   z-index: 1;
   display: grid;
   justify-items: center;
-  gap: 5px;
-  min-width: 78px;
-  min-height: 104px;
-  padding: 8px 6px;
+  gap: 3px;
+  min-width: 68px;
+  min-height: 82px;
+  padding: 6px 5px;
   border-radius: 8px;
   border: 1px solid rgba(104, 84, 136, 0.22);
   background: rgba(255, 255, 255, 0.86);
@@ -463,24 +463,24 @@ button:disabled {
 .map-icon {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: linear-gradient(135deg, #d8d0c2, #fff7df);
   color: #607187;
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 900;
   box-shadow: var(--inner-light), 0 9px 18px rgba(31, 47, 68, 0.11);
 }
 
 .map-node strong {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .map-node small {
   width: 100%;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   line-height: 1.1;
   text-align: center;
@@ -515,7 +515,7 @@ button:disabled {
 .play-layout {
   display: grid;
   grid-template-columns: minmax(420px, 1fr) minmax(360px, 440px);
-  gap: 18px;
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -1077,13 +1077,13 @@ textarea:focus {
 }
 
 .alex-mode .mission-instructions p {
-  font-size: clamp(24px, 2.8vw, 38px);
+  font-size: clamp(22px, 2.4vw, 32px);
 }
 
 .alex-mode .read-button {
-  min-width: 170px;
-  min-height: 60px;
-  font-size: 18px;
+  min-width: 150px;
+  min-height: 50px;
+  font-size: 17px;
 }
 
 .alex-mode .command-bank button,
@@ -1364,15 +1364,59 @@ textarea:focus {
 
   .app-shell {
     width: min(calc(100vw - 16px), 720px);
-    padding: 12px 0;
+    padding: 8px 0 12px;
   }
 
   .topbar {
-    grid-template-columns: 1fr;
-    padding: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
   }
 
-  .player-switch, .profile-card, .level-picker, .level-picker select, .parent-button {
+  .brand {
+    grid-column: 1 / -1;
+  }
+
+  .brand h1 {
+    font-size: clamp(32px, 10vw, 44px);
+    line-height: 0.88;
+  }
+
+  .profile-card {
+    grid-column: 1 / -1;
+    min-height: 50px;
+    grid-template-columns: 40px 1fr;
+    padding: 6px 8px;
+  }
+
+  .profile-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .profile-card p {
+    display: none;
+  }
+
+  .player-switch, .level-picker, .level-picker select {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .level-picker {
+    grid-template-columns: 72px 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .topbar button,
+  .topbar select {
+    min-height: 38px;
+  }
+
+  .parent-button {
     width: 100%;
   }
 
@@ -1381,18 +1425,42 @@ textarea:focus {
   .mission-panel, .world-map-panel, .progress-panel {
     align-items: flex-start;
     flex-direction: column;
-    padding: 14px;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
   }
 
   .world-map-header {
     width: 100%;
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    margin-bottom: 4px;
+  }
+
+  .world-map-header strong {
+    font-size: 16px;
   }
 
   .world-map {
     width: 100%;
-    grid-template-columns: repeat(12, 86px);
+    grid-template-columns: repeat(12, 70px);
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .world-map::before {
+    top: 34px;
+  }
+
+  .map-node {
+    min-width: 70px;
+    min-height: 82px;
+  }
+
+  .map-icon {
+    width: 38px;
+    height: 38px;
   }
 
   .mission-title-block {
@@ -1402,10 +1470,22 @@ textarea:focus {
   .mission-instructions {
     width: 100%;
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mission-instructions p {
+    font-size: 20px;
+    line-height: 1.1;
   }
 
   .read-button {
     width: 100%;
+    min-height: 44px;
+  }
+
+  .stars {
+    font-size: 23px;
+    line-height: 1;
   }
 
   .play-layout {
@@ -1413,7 +1493,7 @@ textarea:focus {
   }
 
   .board-wrap, .code-panel {
-    padding: 12px;
+    padding: 10px;
   }
 
   .board {
@@ -1451,15 +1531,15 @@ textarea:focus {
   }
 
   .mission-panel h2 {
-    font-size: 24px;
-  }
-
-  .mission-instructions p {
     font-size: 22px;
   }
 
+  .mission-instructions p {
+    font-size: 20px;
+  }
+
   .alex-mode .mission-instructions p {
-    font-size: 25px;
+    font-size: 21px;
   }
 }
 
