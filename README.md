@@ -2,6 +2,8 @@
 
 A first playable coding adventure for young coders.
 
+Live site: https://vrtxomega.github.io/robot-dungeon-python-quest/
+
 Kids guide Byte the robot through grid missions with Python-style commands:
 
 ```python
