@@ -1,0 +1,11 @@
+{
+  "name": "robot-dungeon-python-quest",
+  "version": "0.1.0",
+  "description": "A kid-friendly coding adventure for Emmy and Alex.",
+  "scripts": {
+    "dev": "npx serve .",
+    "test": "node game.test.js"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {}
+}

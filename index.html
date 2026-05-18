@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Robot Dungeon: Python Quest</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101820'/%3E%3Crect x='16' y='18' width='32' height='28' rx='6' fill='%239ed4ff' stroke='%23ffffff' stroke-width='4'/%3E%3Ccircle cx='26' cy='31' r='3' fill='%23101820'/%3E%3Ccircle cx='38' cy='31' r='3' fill='%23101820'/%3E%3Cpath d='M24 40h16' stroke='%23101820' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient-scene" aria-hidden="true">
+    <span class="sky-orbit orbit-one"></span>
+    <span class="sky-orbit orbit-two"></span>
+    <span class="sky-orbit orbit-three"></span>
+  </div>
+  <main class="app-shell">
+    <section class="topbar" aria-label="Player and level controls">
+      <div class="brand">
+        <span class="badge">Python Quest</span>
+        <h1>Robot Dungeon</h1>
+      </div>
+      <div class="profile-card" id="profileCard" aria-live="polite">
+        <div class="profile-avatar" id="profileAvatar" aria-hidden="true">E</div>
+        <div>
+          <span class="tiny-label" id="profileMode">Code Pilot</span>
+          <strong id="profileName">Emmy</strong>
+          <p id="profileLine">Ready to teach Byte real code.</p>
+        </div>
+      </div>
+      <div class="player-switch" role="group" aria-label="Choose player">
+        <button class="chip active" data-player="Emmy" type="button">Emmy</button>
+        <button class="chip" data-player="Alex" type="button">Alex</button>
+      </div>
+      <div class="level-picker">
+        <label for="levelSelect">Mission</label>
+        <select id="levelSelect"></select>
+      </div>
+      <button id="rewardsBtn" class="parent-button" type="button">Rewards</button>
+      <button id="parentBtn" class="parent-button" type="button">Parent</button>
+    </section>
+
+    <section class="mission-panel" aria-live="polite">
+      <div class="mission-title-block">
+        <p class="eyebrow" id="conceptLabel">Sequence</p>
+        <h2 id="levelTitle">Wake the Robot</h2>
+      </div>
+      <div class="mission-instructions">
+        <p id="levelGoal">Help Byte get the gem.</p>
+        <button id="readBtn" class="read-button" type="button" title="Read the mission out loud">
+          <span aria-hidden="true">▶</span>
+          Read to me
+        </button>
+      </div>
+      <div class="stars" id="stars" aria-label="Mission rating"></div>
+    </section>
+
+    <section class="world-map-panel" aria-label="World map">
+      <div class="world-map-header">
+        <div>
+          <span class="tiny-label">World Map</span>
+          <strong id="mapSummary">Choose a mission path</strong>
+        </div>
+        <span class="map-key"><span></span> Next quest</span>
+      </div>
+      <div id="worldMap" class="world-map"></div>
+    </section>
+
+    <section class="play-layout">
+      <div class="board-wrap">
+        <div class="board-toolbar">
+          <div>
+            <span class="tiny-label">Byte is facing</span>
+            <strong id="facingLabel">east</strong>
+          </div>
+          <div class="mission-chip">
+            <span id="missionNumber">01</span>
+            <small>Quest</small>
+          </div>
+          <div>
+            <span class="tiny-label">Steps</span>
+            <strong id="stepLabel">0</strong>
+          </div>
+        </div>
+        <div id="board" class="board" aria-label="Robot dungeon grid"></div>
+      </div>
+
+      <aside class="code-panel">
+        <div class="mentor" id="mentorBox">
+          <div class="mentor-avatar" aria-hidden="true">?</div>
+          <p id="mentorText">Hi Emmy. I am Nova. Give Byte one command per line, then press Run.</p>
+        </div>
+
+        <div class="lesson-card">
+          <span class="tiny-label">Nova's checklist</span>
+          <ul id="lessonList"></ul>
+        </div>
+
+        <div id="alexBuilder" class="alex-builder" aria-label="Alex command builder">
+          <div class="alex-builder-head">
+            <div>
+              <span class="tiny-label">Alex mode</span>
+              <strong>Tap Byte's next moves</strong>
+            </div>
+            <div class="alex-tools">
+              <button id="alexHelpBtn" class="icon-button" type="button">Help Me</button>
+              <button id="alexClearBtn" class="icon-button" type="button">Undo</button>
+            </div>
+          </div>
+          <div class="visual-command-grid">
+            <button data-visual-command="move()" type="button"><span>↑</span><strong>Move</strong></button>
+            <button data-visual-command="turn_left()" type="button"><span>↶</span><strong>Left</strong></button>
+            <button data-visual-command="turn_right()" type="button"><span>↷</span><strong>Right</strong></button>
+            <button data-visual-command="collect()" type="button"><span>◆</span><strong>Grab</strong></button>
+            <button data-visual-command="repeat_move_4" type="button"><span>×4</span><strong>Repeat Move</strong></button>
+          </div>
+          <div class="alex-plan" id="alexPlan" aria-label="Alex command plan"></div>
+          <button id="alexRunBtn" class="primary alex-run" type="button">Run My Plan</button>
+        </div>
+
+        <div class="editor-row">
+          <label for="codeInput">Code</label>
+          <div class="editor-actions">
+            <button id="clearBtn" class="icon-button" type="button" title="Clear the code box">Clear</button>
+            <button id="sampleBtn" class="icon-button" type="button" title="Load a gentle starter">Starter</button>
+          </div>
+        </div>
+        <textarea id="codeInput" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+
+        <div class="button-grid">
+          <button id="runBtn" class="primary" type="button">Run</button>
+          <button id="resetBtn" type="button">Reset</button>
+          <button id="hintBtn" type="button">Hint</button>
+          <button id="nextBtn" type="button" disabled>Next</button>
+        </div>
+
+        <div class="command-bank" aria-label="Command bank">
+          <button data-command="move()" type="button">move()</button>
+          <button data-command="turn_left()" type="button">turn_left()</button>
+          <button data-command="turn_right()" type="button">turn_right()</button>
+          <button data-command="collect()" type="button">collect()</button>
+          <button data-command="repeat(3):\n    move()" type="button">repeat</button>
+          <button data-command="if wall_ahead():\n    turn_left()" type="button">if wall</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="progress-panel">
+      <div>
+        <span class="tiny-label">Progress for <strong id="progressName">Emmy</strong></span>
+        <div class="progress-track"><span id="progressFill"></span></div>
+      </div>
+      <p id="progressText">0 missions complete</p>
+    </section>
+  </main>
+
+  <div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="modal-card">
+      <span class="badge">Built for Emmy and Alex</span>
+      <h2 id="welcomeTitle">Welcome to Robot Dungeon</h2>
+      <p>Help Byte collect shiny gems. Nova can read each mission out loud, so Alex can play by listening and tapping the command buttons.</p>
+      <button id="startBtn" class="primary" type="button">Start Mission</button>
+    </div>
+  </div>
+
+  <div id="successModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="modal-card celebration-card">
+      <div class="confetti-field" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="badge">Mission Complete</span>
+      <h2 id="successTitle">Byte did it!</h2>
+      <p id="successText">Great coding.</p>
+      <div class="success-actions">
+        <button id="replayBtn" type="button">Replay</button>
+        <button id="successRewardsBtn" type="button">Rewards</button>
+        <button id="successNextBtn" class="primary" type="button">Next Mission</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="parentPanel" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-card">
+      <div class="drawer-header">
+        <div>
+          <span class="badge">Parent View</span>
+          <h2>Progress Check</h2>
+        </div>
+        <button id="closeParentBtn" type="button">Close</button>
+      </div>
+      <div id="parentStats" class="parent-stats"></div>
+      <div class="drawer-actions">
+        <button id="exportBtn" type="button">Export Progress</button>
+        <button id="resetProgressBtn" type="button">Reset Current Child</button>
+      </div>
+      <textarea id="exportBox" readonly aria-label="Exported progress"></textarea>
+    </div>
+  </div>
+
+  <div id="rewardPanel" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-card reward-card">
+      <div class="drawer-header">
+        <div>
+          <span class="badge">Reward Room</span>
+          <h2><span id="rewardName">Emmy</span>'s Badges</h2>
+        </div>
+        <button id="closeRewardsBtn" type="button">Close</button>
+      </div>
+      <p class="reward-intro" id="rewardIntro">Complete missions to unlock Byte's treasures.</p>
+      <div id="rewardGrid" class="reward-grid"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
