@@ -474,18 +474,21 @@
       gems: new Set((level.gems || []).map(key)),
       batteries: new Set((level.batteries || []).map(key)),
       path: [],
+      steps: 0,
     };
 
     for (const command of expandedCommands) {
       if (command === "turn_left()") {
         const index = DIRECTIONS.indexOf(sim.dir);
         sim.dir = DIRECTIONS[(index + 3) % 4];
+        sim.steps += 1;
         continue;
       }
 
       if (command === "turn_right()") {
         const index = DIRECTIONS.indexOf(sim.dir);
         sim.dir = DIRECTIONS[(index + 1) % 4];
+        sim.steps += 1;
         continue;
       }
 
@@ -493,6 +496,7 @@
         const pos = key(sim.robot);
         sim.gems.delete(pos);
         sim.batteries.delete(pos);
+        sim.steps += 1;
         continue;
       }
 
@@ -507,10 +511,24 @@
         const portal = (level.portals || []).find((point) => point.x === next.x && point.y === next.y);
         if (portal) sim.robot = clonePoint(portal.to);
         sim.path.push(key(sim.robot));
+        sim.steps += 1;
       }
     }
 
     return { ...sim, ok: true };
+  }
+
+  function displayState() {
+    if (player !== "Alex" || running || state.won || alexCommands.length === 0) return state;
+    const preview = simulatePlan(alexCommands);
+    return {
+      ...state,
+      robot: preview.robot,
+      dir: preview.dir,
+      gems: preview.gems,
+      batteries: preview.batteries,
+      steps: preview.steps,
+    };
   }
 
   function ghostPathKeys() {
@@ -525,11 +543,12 @@
 
   function render() {
     const level = levels[currentLevelIndex];
+    const view = displayState();
     board.style.setProperty("--cols", level.size);
     board.innerHTML = "";
-    board.style.setProperty("--robot-rotation", `${ROTATION[state.dir]}deg`);
-    facingLabel.textContent = state.dir;
-    stepLabel.textContent = String(state.steps);
+    board.style.setProperty("--robot-rotation", `${ROTATION[view.dir]}deg`);
+    facingLabel.textContent = view.dir;
+    stepLabel.textContent = String(view.steps);
     const ghosts = ghostPathKeys();
 
     for (let y = 0; y < level.size; y += 1) {
@@ -538,12 +557,12 @@
         cell.className = "cell";
         if (tileAt(x, y, "walls")) cell.classList.add("wall");
         if (tileAt(x, y, "water")) cell.classList.add("water");
-        if (state.gems.has(`${x},${y}`)) cell.classList.add("gem");
-        if (state.batteries.has(`${x},${y}`)) cell.classList.add("battery");
+        if (view.gems.has(`${x},${y}`)) cell.classList.add("gem");
+        if (view.batteries.has(`${x},${y}`)) cell.classList.add("battery");
         if (tileAt(x, y, "bugs")) cell.classList.add("bug");
         if (portalAt(x, y)) cell.classList.add("portal");
         if (ghosts.has(`${x},${y}`)) cell.classList.add("ghost-path");
-        if (state.robot.x === x && state.robot.y === y) cell.classList.add("robot");
+        if (view.robot.x === x && view.robot.y === y) cell.classList.add("robot");
         board.appendChild(cell);
       }
     }
