@@ -373,6 +373,7 @@
     runToken += 1;
     running = false;
     runBtn.disabled = false;
+    if (options.resetPreview !== false) codePreviewEnabled = false;
     currentLevelIndex = Math.max(0, Math.min(levels.length - 1, index));
     const level = levels[currentLevelIndex];
     state = {
