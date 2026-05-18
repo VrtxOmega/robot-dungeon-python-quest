@@ -189,6 +189,7 @@
   let running = false;
   let runToken = 0;
   let voiceEnabled = false;
+  let codePreviewEnabled = false;
   let speechReady = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
   let speechResetTimer = null;
   let speechKeepAlive = null;
@@ -206,6 +207,7 @@
   const readBtn = document.getElementById("readBtn");
   const sampleBtn = document.getElementById("sampleBtn");
   const clearBtn = document.getElementById("clearBtn");
+  const previewBtn = document.getElementById("previewBtn");
   const alexBuilder = document.getElementById("alexBuilder");
   const alexClearBtn = document.getElementById("alexClearBtn");
   const alexHelpBtn = document.getElementById("alexHelpBtn");
@@ -350,11 +352,21 @@
     document.body.classList.toggle("alex-mode", player === "Alex");
     document.body.classList.toggle("theme-emmy", player === "Emmy");
     document.body.classList.toggle("theme-alex", player === "Alex");
+    syncPreviewButton();
     profileAvatar.textContent = profile.avatar;
     profileMode.textContent = profile.mode;
     profileName.textContent = player;
     profileLine.textContent = profile.line;
     profileCard.setAttribute("aria-label", `${player}, ${profile.mode}. ${profile.line}`);
+  }
+
+  function syncPreviewButton() {
+    if (!previewBtn) return;
+    const active = player === "Emmy" && codePreviewEnabled;
+    previewBtn.classList.toggle("active", active);
+    previewBtn.setAttribute("aria-pressed", String(active));
+    previewBtn.textContent = active ? "Preview On" : "Preview";
+    document.body.classList.toggle("code-preview-on", active);
   }
 
   function initLevel(index, keepCode, options = {}) {
@@ -466,9 +478,8 @@
     return command;
   }
 
-  function simulatePlan(commands, level = levels[currentLevelIndex]) {
-    const expandedCommands = expandVisualCommands(commands);
-    const sim = {
+  function createSimulation(level) {
+    return {
       robot: clonePoint(level.robot),
       dir: level.robot.dir,
       gems: new Set((level.gems || []).map(key)),
@@ -476,51 +487,117 @@
       path: [],
       steps: 0,
     };
+  }
+
+  function simulationWallAhead(sim, level) {
+    const delta = DELTAS[sim.dir];
+    const next = { x: sim.robot.x + delta.x, y: sim.robot.y + delta.y };
+    return next.x < 0 || next.y < 0 || next.x >= level.size || next.y >= level.size
+      || (level.walls || []).some((point) => point.x === next.x && point.y === next.y);
+  }
+
+  function simulationGemHere(sim) {
+    return sim.gems.has(key(sim.robot));
+  }
+
+  function applySimulationCommand(sim, command, level) {
+    if (command === "turn_left()") {
+      const index = DIRECTIONS.indexOf(sim.dir);
+      sim.dir = DIRECTIONS[(index + 3) % 4];
+      sim.steps += 1;
+      return null;
+    }
+
+    if (command === "turn_right()") {
+      const index = DIRECTIONS.indexOf(sim.dir);
+      sim.dir = DIRECTIONS[(index + 1) % 4];
+      sim.steps += 1;
+      return null;
+    }
+
+    if (command === "collect()") {
+      const pos = key(sim.robot);
+      sim.gems.delete(pos);
+      sim.batteries.delete(pos);
+      sim.steps += 1;
+      return null;
+    }
+
+    if (command === "move()") {
+      const delta = DELTAS[sim.dir];
+      const next = { x: sim.robot.x + delta.x, y: sim.robot.y + delta.y };
+      const blocked = next.x < 0 || next.y < 0 || next.x >= level.size || next.y >= level.size
+        || (level.walls || []).some((point) => point.x === next.x && point.y === next.y)
+        || (level.bugs || []).some((point) => point.x === next.x && point.y === next.y);
+      if (blocked) return { ok: false, reason: "Byte might bump. Try a turn first." };
+      sim.robot = next;
+      const portal = (level.portals || []).find((point) => point.x === next.x && point.y === next.y);
+      if (portal) sim.robot = clonePoint(portal.to);
+      sim.path.push(key(sim.robot));
+      sim.steps += 1;
+    }
+
+    return null;
+  }
+
+  function simulatePlan(commands, level = levels[currentLevelIndex]) {
+    const sim = createSimulation(level);
+    const expandedCommands = expandVisualCommands(commands);
 
     for (const command of expandedCommands) {
-      if (command === "turn_left()") {
-        const index = DIRECTIONS.indexOf(sim.dir);
-        sim.dir = DIRECTIONS[(index + 3) % 4];
-        sim.steps += 1;
-        continue;
-      }
-
-      if (command === "turn_right()") {
-        const index = DIRECTIONS.indexOf(sim.dir);
-        sim.dir = DIRECTIONS[(index + 1) % 4];
-        sim.steps += 1;
-        continue;
-      }
-
-      if (command === "collect()") {
-        const pos = key(sim.robot);
-        sim.gems.delete(pos);
-        sim.batteries.delete(pos);
-        sim.steps += 1;
-        continue;
-      }
-
-      if (command === "move()") {
-        const delta = DELTAS[sim.dir];
-        const next = { x: sim.robot.x + delta.x, y: sim.robot.y + delta.y };
-        const blocked = next.x < 0 || next.y < 0 || next.x >= level.size || next.y >= level.size
-          || (level.walls || []).some((point) => point.x === next.x && point.y === next.y)
-          || (level.bugs || []).some((point) => point.x === next.x && point.y === next.y);
-        if (blocked) return { ...sim, ok: false, reason: "Byte might bump. Try a turn first." };
-        sim.robot = next;
-        const portal = (level.portals || []).find((point) => point.x === next.x && point.y === next.y);
-        if (portal) sim.robot = clonePoint(portal.to);
-        sim.path.push(key(sim.robot));
-        sim.steps += 1;
-      }
+      const result = applySimulationCommand(sim, command, level);
+      if (result) return { ...sim, ...result };
     }
 
     return { ...sim, ok: true };
   }
 
+  function applyParsedSimulationCommands(sim, commands, level) {
+    for (const command of commands) {
+      if (command.type === "repeat") {
+        for (let count = 0; count < command.count; count += 1) {
+          const result = applyParsedSimulationCommands(sim, command.body, level);
+          if (result) return result;
+        }
+        continue;
+      }
+
+      if (command.type === "if") {
+        const passes = command.test === "wall_ahead" ? simulationWallAhead(sim, level) : simulationGemHere(sim);
+        if (passes) {
+          const result = applyParsedSimulationCommands(sim, command.body, level);
+          if (result) return result;
+        }
+        continue;
+      }
+
+      const result = applySimulationCommand(sim, `${command.type}()`, level);
+      if (result) return result;
+    }
+
+    return null;
+  }
+
+  function simulateCodePreview(source, level = levels[currentLevelIndex]) {
+    const commands = parseProgram(source);
+    if (commands.length === 0 || countCommands(commands) > 80) return null;
+    const sim = createSimulation(level);
+    const result = applyParsedSimulationCommands(sim, commands, level);
+    return result ? { ...sim, ...result } : { ...sim, ok: true };
+  }
+
   function displayState() {
-    if (player !== "Alex" || running || state.won || alexCommands.length === 0) return state;
-    const preview = simulatePlan(alexCommands);
+    if (running || state.won) return state;
+    let preview = null;
+    if (player === "Alex" && alexCommands.length > 0) preview = simulatePlan(alexCommands);
+    if (player === "Emmy" && codePreviewEnabled && codeInput.value.trim()) {
+      try {
+        preview = simulateCodePreview(codeInput.value);
+      } catch (error) {
+        preview = null;
+      }
+    }
+    if (!preview) return state;
     return {
       ...state,
       robot: preview.robot,
@@ -1045,6 +1122,11 @@
     codeInput.value = next;
     codeInput.focus();
     codeInput.selectionStart = codeInput.selectionEnd = before.length + prefix.length + text.length;
+    if (codePreviewEnabled && player === "Emmy") render();
+  }
+
+  function refreshCodePreview() {
+    if (codePreviewEnabled && player === "Emmy") render();
   }
 
   function renderParentStats() {
@@ -1142,6 +1224,17 @@
     button.addEventListener("click", () => insertCommand(button.dataset.command));
   });
 
+  codeInput.addEventListener("input", refreshCodePreview);
+
+  previewBtn.addEventListener("click", () => {
+    codePreviewEnabled = !codePreviewEnabled;
+    syncPreviewButton();
+    render();
+    setMentor(codePreviewEnabled
+      ? "Preview is on. Byte shows what valid code will do before you press Run."
+      : "Preview is off. Press Run when you want Byte to try the mission.");
+  });
+
   document.querySelectorAll("[data-visual-command]").forEach((button) => {
     button.addEventListener("click", () => addAlexCommand(button.dataset.visualCommand));
   });
@@ -1174,10 +1267,12 @@
   resetBtn.addEventListener("click", () => initLevel(currentLevelIndex, true, { speak: false }));
   clearBtn.addEventListener("click", () => {
     codeInput.value = "";
+    refreshCodePreview();
     setMentor("Code cleared. Add one command at a time and watch what Byte does.");
   });
   sampleBtn.addEventListener("click", () => {
     codeInput.value = levels[currentLevelIndex].starter;
+    refreshCodePreview();
     setMentor("Starter loaded. Run it, then experiment.");
   });
   hintBtn.addEventListener("click", () => {
