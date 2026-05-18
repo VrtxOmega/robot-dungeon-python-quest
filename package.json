@@ -2,6 +2,23 @@
   "name": "robot-dungeon-python-quest",
   "version": "0.1.0",
   "description": "A kid-friendly coding adventure for young coders.",
+  "homepage": "https://vrtxomega.github.io/robot-dungeon-python-quest/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VrtxOmega/robot-dungeon-python-quest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VrtxOmega/robot-dungeon-python-quest/issues"
+  },
+  "keywords": [
+    "coding",
+    "education",
+    "kids",
+    "python",
+    "game",
+    "github-pages",
+    "veritas"
+  ],
   "scripts": {
     "dev": "npx serve .",
     "test": "node game.test.js"
