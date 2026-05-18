@@ -22,14 +22,14 @@
       <div class="profile-card" id="profileCard" aria-live="polite">
         <div class="profile-avatar" id="profileAvatar" aria-hidden="true">E</div>
         <div>
-          <span class="tiny-label" id="profileMode">Code Pilot</span>
-          <strong id="profileName">Emmy</strong>
+          <span class="tiny-label" id="profileMode">Builder Mode</span>
+          <strong id="profileName">Builder</strong>
           <p id="profileLine">Ready to teach Byte real code.</p>
         </div>
       </div>
       <div class="player-switch" role="group" aria-label="Choose player">
-        <button class="chip active" data-player="Emmy" type="button">Emmy</button>
-        <button class="chip" data-player="Alex" type="button">Alex</button>
+        <button class="chip active" data-player="Builder" type="button">Builder</button>
+        <button class="chip" data-player="Explorer" type="button">Explorer</button>
       </div>
       <div class="level-picker">
         <label for="levelSelect">Mission</label>
@@ -87,7 +87,7 @@
       <aside class="code-panel">
         <div class="mentor" id="mentorBox">
           <div class="mentor-avatar" aria-hidden="true">?</div>
-          <p id="mentorText">Hi Emmy. I am Nova. Give Byte one command per line, then press Run.</p>
+          <p id="mentorText">Hi Builder. I am Nova. Give Byte one command per line, then press Run.</p>
         </div>
 
         <div class="lesson-card">
@@ -95,15 +95,15 @@
           <ul id="lessonList"></ul>
         </div>
 
-        <div id="alexBuilder" class="alex-builder" aria-label="Alex command builder">
-          <div class="alex-builder-head">
+        <div id="explorerBuilder" class="explorer-builder" aria-label="Explorer command builder">
+          <div class="explorer-builder-head">
             <div>
-              <span class="tiny-label">Alex mode</span>
+              <span class="tiny-label">Explorer Mode</span>
               <strong>Tap Byte's next moves</strong>
             </div>
-            <div class="alex-tools">
-              <button id="alexHelpBtn" class="icon-button" type="button">Help Me</button>
-              <button id="alexClearBtn" class="icon-button" type="button">Undo</button>
+            <div class="explorer-tools">
+              <button id="explorerHelpBtn" class="icon-button" type="button">Help Me</button>
+              <button id="explorerClearBtn" class="icon-button" type="button">Undo</button>
             </div>
           </div>
           <div class="visual-command-grid">
@@ -113,8 +113,8 @@
             <button data-visual-command="collect()" type="button"><span>◆</span><strong>Grab</strong></button>
             <button data-visual-command="repeat_move_4" type="button"><span>×4</span><strong>Repeat Move</strong></button>
           </div>
-          <div class="alex-plan" id="alexPlan" aria-label="Alex command plan"></div>
-          <button id="alexRunBtn" class="primary alex-run" type="button">Run My Plan</button>
+          <div class="explorer-plan" id="explorerPlan" aria-label="Explorer command plan"></div>
+          <button id="explorerRunBtn" class="primary explorer-run" type="button">Run My Plan</button>
         </div>
 
         <div class="editor-row">
@@ -147,7 +147,7 @@
 
     <section class="progress-panel">
       <div>
-        <span class="tiny-label">Progress for <strong id="progressName">Emmy</strong></span>
+        <span class="tiny-label">Progress for <strong id="progressName">Builder</strong></span>
         <div class="progress-track"><span id="progressFill"></span></div>
       </div>
       <p id="progressText">0 missions complete</p>
@@ -156,9 +156,9 @@
 
   <div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="modal-card">
-      <span class="badge">Built for Emmy and Alex</span>
+      <span class="badge">Built for young coders</span>
       <h2 id="welcomeTitle">Welcome to Robot Dungeon</h2>
-      <p>Help Byte collect shiny gems. Nova can read each mission out loud, so Alex can play by listening and tapping the command buttons.</p>
+      <p>Help Byte collect shiny gems. Nova can read each mission out loud, and younger players can guide Byte by tapping big command buttons.</p>
       <button id="startBtn" class="primary" type="button">Start Mission</button>
     </div>
   </div>
@@ -183,15 +183,29 @@
     <div class="drawer-card">
       <div class="drawer-header">
         <div>
-          <span class="badge">Parent View</span>
-          <h2>Progress Check</h2>
+          <span class="badge">Parent Setup</span>
+          <h2>Players & Progress</h2>
         </div>
         <button id="closeParentBtn" type="button">Close</button>
+      </div>
+      <div class="setup-card" aria-label="Player setup">
+        <span class="tiny-label">Player Names</span>
+        <div class="setup-grid">
+          <label for="builderNameInput">
+            <span>Builder Mode / Code Mode</span>
+            <input id="builderNameInput" type="text" maxlength="24" autocomplete="off" placeholder="Builder">
+          </label>
+          <label for="explorerNameInput">
+            <span>Explorer Mode / Easy Mode</span>
+            <input id="explorerNameInput" type="text" maxlength="24" autocomplete="off" placeholder="Explorer">
+          </label>
+        </div>
+        <button id="saveNamesBtn" class="primary" type="button">Save Names</button>
       </div>
       <div id="parentStats" class="parent-stats"></div>
       <div class="drawer-actions">
         <button id="exportBtn" type="button">Export Progress</button>
-        <button id="resetProgressBtn" type="button">Reset Current Child</button>
+        <button id="resetProgressBtn" type="button">Reset Current Player</button>
       </div>
       <textarea id="exportBox" readonly aria-label="Exported progress"></textarea>
     </div>
@@ -202,7 +216,7 @@
       <div class="drawer-header">
         <div>
           <span class="badge">Reward Room</span>
-          <h2><span id="rewardName">Emmy</span>'s Badges</h2>
+          <h2><span id="rewardName">Builder</span>'s Badges</h2>
         </div>
         <button id="closeRewardsBtn" type="button">Close</button>
       </div>

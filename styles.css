@@ -45,13 +45,13 @@ body {
   overflow-x: hidden;
 }
 
-body.theme-emmy {
+body.theme-builder {
   --profile-a: #8753e8;
   --profile-b: #23b7d9;
   --profile-glow: rgba(182, 140, 255, 0.32);
 }
 
-body.theme-alex {
+body.theme-explorer {
   --profile-a: #22a06b;
   --profile-b: #f59e0b;
   --profile-glow: rgba(246, 200, 95, 0.30);
@@ -868,7 +868,7 @@ button:disabled {
   font-weight: 900;
 }
 
-.alex-builder {
+.explorer-builder {
   display: none;
   gap: 12px;
   padding: 14px;
@@ -880,25 +880,25 @@ button:disabled {
   box-shadow: var(--inner-light), 0 12px 30px rgba(31, 47, 68, 0.12);
 }
 
-.alex-mode .alex-builder {
+.explorer-mode .explorer-builder {
   display: grid;
 }
 
-.alex-builder-head {
+.explorer-builder-head {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   align-items: center;
 }
 
-.alex-tools {
+.explorer-tools {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.alex-builder-head strong {
+.explorer-builder-head strong {
   display: block;
   margin-top: 3px;
   font-size: 18px;
@@ -967,7 +967,7 @@ button:disabled {
   box-shadow: 0 8px 16px rgba(132, 82, 0, 0.24);
 }
 
-.alex-plan {
+.explorer-plan {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
@@ -992,15 +992,15 @@ button:disabled {
   box-shadow: var(--inner-light), 0 4px 10px rgba(31, 47, 68, 0.10);
 }
 
-.alex-run {
+.explorer-run {
   width: 100%;
   min-height: 58px;
   font-size: 18px;
 }
 
-.alex-mode .editor-row,
-.alex-mode textarea,
-.alex-mode .command-bank {
+.explorer-mode .editor-row,
+.explorer-mode textarea,
+.explorer-mode .command-bank {
   display: none;
 }
 
@@ -1093,18 +1093,18 @@ textarea:focus {
   background: rgba(255, 249, 233, 0.94);
 }
 
-.alex-mode .mission-instructions p {
+.explorer-mode .mission-instructions p {
   font-size: clamp(22px, 2.4vw, 32px);
 }
 
-.alex-mode .read-button {
+.explorer-mode .read-button {
   min-width: 150px;
   min-height: 50px;
   font-size: 17px;
 }
 
-.alex-mode .command-bank button,
-.alex-mode .button-grid button {
+.explorer-mode .command-bank button,
+.explorer-mode .button-grid button {
   min-height: 48px;
   font-size: 15px;
 }
@@ -1253,6 +1253,51 @@ textarea:focus {
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
+}
+
+.setup-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(104, 84, 136, 0.20);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(48, 213, 222, 0.12), transparent 48%),
+    #fffaf0;
+  box-shadow: var(--inner-light), 0 10px 18px rgba(8, 6, 22, 0.08);
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.setup-grid label {
+  display: grid;
+  gap: 6px;
+  color: #24133e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.setup-grid input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(104, 84, 136, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  outline: none;
+}
+
+.setup-grid input:focus {
+  border-color: rgba(40, 119, 232, 0.62);
+  box-shadow: 0 0 0 4px rgba(48, 213, 222, 0.14);
 }
 
 .parent-stats {
@@ -1555,7 +1600,7 @@ textarea:focus {
     font-size: 20px;
   }
 
-  .alex-mode .mission-instructions p {
+  .explorer-mode .mission-instructions p {
     font-size: 21px;
   }
 }

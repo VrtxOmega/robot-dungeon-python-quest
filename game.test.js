@@ -29,11 +29,12 @@ const ids = [
   "progressText", "progressFill", "clearBtn", "parentBtn", "closeParentBtn",
   "exportBtn", "resetProgressBtn", "startBtn", "replayBtn", "successRewardsBtn", "successNextBtn",
   "lessonList", "welcomeModal", "successModal", "successText", "parentPanel",
-  "parentStats", "exportBox", "missionNumber", "alexBuilder", "alexClearBtn",
-  "alexRunBtn", "alexHelpBtn", "alexPlan", "rewardsBtn", "closeRewardsBtn",
+  "parentStats", "exportBox", "missionNumber", "explorerBuilder", "explorerClearBtn",
+  "explorerRunBtn", "explorerHelpBtn", "explorerPlan", "rewardsBtn", "closeRewardsBtn",
   "rewardPanel", "rewardGrid", "rewardName", "rewardIntro",
   "worldMap", "mapSummary",
   "profileCard", "profileAvatar", "profileMode", "profileName", "profileLine",
+  "builderNameInput", "explorerNameInput", "saveNamesBtn",
 ];
 
 ids.forEach((id) => elements.set(id, makeElement()));

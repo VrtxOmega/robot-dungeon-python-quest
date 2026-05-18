@@ -7,7 +7,10 @@
     west: { x: -1, y: 0 },
   };
   const ROTATION = { north: -90, east: 0, south: 90, west: 180 };
-  const STORAGE_KEY = "robotDungeonPythonQuest.v1";
+  const PROFILE_IDS = ["Builder", "Explorer"];
+  const DEFAULT_PROFILE_NAMES = { Builder: "Builder", Explorer: "Explorer" };
+  const STORAGE_KEY = "robotDungeonPythonQuest.progress.v2";
+  const SETTINGS_KEY = "robotDungeonPythonQuest.profileSettings.v1";
 
   const levels = [
     {
@@ -20,7 +23,7 @@
       gems: [{ x: 3, y: 2 }],
       walls: [],
       starter: "move()\nmove()\nmove()\ncollect()",
-      alexSolution: ["move()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "move()", "collect()"],
       hint: "Byte needs three moves, then collect.",
       maxSteps: 4,
     },
@@ -34,7 +37,7 @@
       gems: [{ x: 3, y: 3 }],
       walls: [{ x: 4, y: 1 }, { x: 4, y: 2 }],
       starter: "move()\nmove()\nturn_right()\nmove()\nmove()\ncollect()",
-      alexSolution: ["move()", "move()", "turn_right()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "turn_right()", "move()", "move()", "collect()"],
       hint: "After two moves, Byte should turn right and go down.",
       maxSteps: 6,
     },
@@ -48,7 +51,7 @@
       gems: [{ x: 4, y: 0 }],
       walls: [],
       starter: "repeat(4):\n    move()\ncollect()",
-      alexSolution: ["repeat_move_4", "collect()"],
+      explorerSolution: ["repeat_move_4", "collect()"],
       hint: "A repeat block can run move four times.",
       maxSteps: 5,
     },
@@ -62,7 +65,7 @@
       gems: [{ x: 2, y: 0 }, { x: 2, y: 2 }],
       walls: [{ x: 3, y: 0 }, { x: 3, y: 1 }],
       starter: "repeat(2):\n    move()\ncollect()\nturn_right()\nrepeat(2):\n    move()\ncollect()",
-      alexSolution: ["move()", "move()", "collect()", "turn_right()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "collect()", "turn_right()", "move()", "move()", "collect()"],
       hint: "Collect the first gem before turning down the staircase.",
       maxSteps: 8,
     },
@@ -76,7 +79,7 @@
       gems: [{ x: 4, y: 2 }],
       walls: [{ x: 2, y: 2 }],
       starter: "move()\nif wall_ahead():\n    turn_right()\nrepeat(2):\n    move()\nturn_left()\nmove()\ncollect()",
-      alexSolution: ["move()", "turn_right()", "move()", "move()", "turn_left()", "move()", "collect()"],
+      explorerSolution: ["move()", "turn_right()", "move()", "move()", "turn_left()", "move()", "collect()"],
       hint: "When the wall is ahead, turn right and drive to the side.",
       maxSteps: 8,
     },
@@ -91,7 +94,7 @@
       bugs: [{ x: 0, y: 3 }],
       walls: [{ x: 1, y: 4 }, { x: 1, y: 3 }, { x: 1, y: 2 }],
       starter: "turn_right()\nrepeat(3):\n    move()\nturn_left()\nrepeat(3):\n    move()\ncollect()",
-      alexSolution: ["turn_right()", "move()", "move()", "move()", "turn_left()", "move()", "move()", "move()", "collect()"],
+      explorerSolution: ["turn_right()", "move()", "move()", "move()", "turn_left()", "move()", "move()", "move()", "collect()"],
       hint: "The red x is a bug tile. Byte cannot step on it, so route around it.",
       maxSteps: 9,
     },
@@ -106,7 +109,7 @@
       batteries: [{ x: 3, y: 1 }],
       walls: [{ x: 4, y: 1 }, { x: 4, y: 2 }, { x: 4, y: 3 }],
       starter: "repeat(3):\n    move()\ncollect()\nturn_right()\nrepeat(3):\n    move()\nturn_left()\nrepeat(2):\n    move()\ncollect()",
-      alexSolution: ["move()", "move()", "move()", "collect()", "turn_right()", "move()", "move()", "move()", "turn_left()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "move()", "collect()", "turn_right()", "move()", "move()", "move()", "turn_left()", "move()", "move()", "collect()"],
       hint: "Collect the battery first. Then go around the wall.",
       maxSteps: 13,
     },
@@ -120,7 +123,7 @@
       gems: [{ x: 2, y: 2 }, { x: 5, y: 2 }],
       walls: [],
       starter: "repeat(5):\n    move()\n    if gem_here():\n        collect()",
-      alexSolution: ["move()", "move()", "collect()", "move()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "collect()", "move()", "move()", "move()", "collect()"],
       hint: "Put if gem_here() inside the repeat block.",
       maxSteps: 10,
     },
@@ -134,7 +137,7 @@
       gems: [{ x: 1, y: 1 }],
       walls: [],
       starter: "repeat(4):\n    repeat(3):\n        move()\n    turn_right()\ncollect()",
-      alexSolution: ["move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "collect()"],
+      explorerSolution: ["move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "move()", "move()", "move()", "turn_right()", "collect()"],
       hint: "A square has four sides. Each side is three moves.",
       maxSteps: 18,
     },
@@ -149,26 +152,26 @@
       portals: [{ x: 2, y: 0, to: { x: 2, y: 4 } }],
       walls: [{ x: 3, y: 0 }, { x: 3, y: 1 }, { x: 3, y: 2 }, { x: 3, y: 3 }],
       starter: "repeat(2):\n    move()\nrepeat(2):\n    move()\ncollect()",
-      alexSolution: ["repeat_move_4", "collect()"],
+      explorerSolution: ["repeat_move_4", "collect()"],
       hint: "Step on ◎, then keep moving toward the gem.",
       maxSteps: 10,
     },
     {
-      title: "Alex Dash",
+      title: "Rocket Dash",
       concept: "Loops",
-      goal: "Alex dash time. Blast straight up to the gem.",
-      speak: "Mission eleven. Alex dash time. Blast straight up to the gem. Repeat move four times, then collect.",
+      goal: "Rocket dash time. Blast straight up to the gem.",
+      speak: "Mission eleven. Rocket dash time. Blast straight up to the gem. Repeat move four times, then collect.",
       size: 5,
       robot: { x: 2, y: 4, dir: "north" },
       gems: [{ x: 2, y: 0 }],
       walls: [],
       starter: "repeat(4):\n    move()\ncollect()",
-      alexSolution: ["repeat_move_4", "collect()"],
+      explorerSolution: ["repeat_move_4", "collect()"],
       hint: "Four moves north will do it.",
       maxSteps: 5,
     },
     {
-      title: "Emmy's Crown Path",
+      title: "Crown Path",
       concept: "Review",
       goal: "Final path. Get all three gems and earn Byte's crown.",
       speak: "Mission twelve. Final path. Get all three gems. Go east, go north, go east, and collect each gem you find.",
@@ -177,14 +180,14 @@
       gems: [{ x: 3, y: 6 }, { x: 3, y: 3 }, { x: 6, y: 3 }],
       walls: [{ x: 4, y: 6 }, { x: 4, y: 5 }, { x: 4, y: 4 }, { x: 2, y: 3 }],
       starter: "repeat(3):\n    move()\ncollect()\nturn_left()\nrepeat(3):\n    move()\ncollect()\nturn_right()\nrepeat(3):\n    move()\ncollect()",
-      alexSolution: ["move()", "move()", "move()", "collect()", "turn_left()", "move()", "move()", "move()", "collect()", "turn_right()", "move()", "move()", "move()", "collect()"],
+      explorerSolution: ["move()", "move()", "move()", "collect()", "turn_left()", "move()", "move()", "move()", "collect()", "turn_right()", "move()", "move()", "move()", "collect()"],
       hint: "This is a three-part path: east, north, east.",
       maxSteps: 14,
     },
   ];
 
   let currentLevelIndex = 0;
-  let player = "Emmy";
+  let player = "Builder";
   let state = null;
   let running = false;
   let runToken = 0;
@@ -196,6 +199,7 @@
   const audioPlayer = typeof Audio !== "undefined" ? new Audio() : null;
   const commandAudioPlayer = typeof Audio !== "undefined" ? new Audio() : null;
   let progress = loadProgress();
+  let profileNames = loadProfileNames();
 
   const board = document.getElementById("board");
   const codeInput = document.getElementById("codeInput");
@@ -208,11 +212,11 @@
   const sampleBtn = document.getElementById("sampleBtn");
   const clearBtn = document.getElementById("clearBtn");
   const previewBtn = document.getElementById("previewBtn");
-  const alexBuilder = document.getElementById("alexBuilder");
-  const alexClearBtn = document.getElementById("alexClearBtn");
-  const alexHelpBtn = document.getElementById("alexHelpBtn");
-  const alexRunBtn = document.getElementById("alexRunBtn");
-  const alexPlan = document.getElementById("alexPlan");
+  const explorerBuilder = document.getElementById("explorerBuilder");
+  const explorerClearBtn = document.getElementById("explorerClearBtn");
+  const explorerHelpBtn = document.getElementById("explorerHelpBtn");
+  const explorerRunBtn = document.getElementById("explorerRunBtn");
+  const explorerPlan = document.getElementById("explorerPlan");
   const parentBtn = document.getElementById("parentBtn");
   const rewardsBtn = document.getElementById("rewardsBtn");
   const closeParentBtn = document.getElementById("closeParentBtn");
@@ -253,19 +257,22 @@
   const profileMode = document.getElementById("profileMode");
   const profileName = document.getElementById("profileName");
   const profileLine = document.getElementById("profileLine");
+  const builderNameInput = document.getElementById("builderNameInput");
+  const explorerNameInput = document.getElementById("explorerNameInput");
+  const saveNamesBtn = document.getElementById("saveNamesBtn");
 
   const profiles = {
-    Emmy: {
-      avatar: "E",
-      mode: "Code Pilot",
-      line: "Ready to teach Byte real code.",
-      className: "theme-emmy",
+    Builder: {
+      avatar: "B",
+      mode: "Builder Mode",
+      line: "Code Mode: write real Python-style spells.",
+      className: "theme-builder",
     },
-    Alex: {
-      avatar: "A",
-      mode: "Tap Pilot",
-      line: "Listen, tap, and guide Byte.",
-      className: "theme-alex",
+    Explorer: {
+      avatar: "E",
+      mode: "Explorer Mode",
+      line: "Easy Mode: listen, tap, and guide Byte.",
+      className: "theme-explorer",
     },
   };
 
@@ -306,7 +313,7 @@
 
   const mapIcons = ["◆", "↷", "×4", "✦", "🧭", "!", "+", "?", "□", "◎", "↑", "♛"];
 
-  let alexCommands = [];
+  let explorerCommands = [];
 
   function clonePoint(point) {
     return { ...point };
@@ -314,6 +321,50 @@
 
   function key(point) {
     return `${point.x},${point.y}`;
+  }
+
+  function cleanProfileName(value, fallback) {
+    const cleaned = String(value || "").replace(/\s+/g, " ").trim().slice(0, 24);
+    return cleaned || fallback;
+  }
+
+  function loadProfileNames() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      if (parsed && typeof parsed === "object") {
+        return PROFILE_IDS.reduce((names, id) => {
+          names[id] = cleanProfileName(parsed[id], DEFAULT_PROFILE_NAMES[id]);
+          return names;
+        }, {});
+      }
+    } catch (error) {
+      // Use safe defaults if this browser has a malformed settings record.
+    }
+    return { ...DEFAULT_PROFILE_NAMES };
+  }
+
+  function saveProfileNames() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(profileNames));
+      return true;
+    } catch (error) {
+      setMentor("Player names could not be saved in this browser, but the game still works.");
+      return false;
+    }
+  }
+
+  function playerName(id = player) {
+    return cleanProfileName(profileNames[id], DEFAULT_PROFILE_NAMES[id] || id);
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[char]));
   }
 
   function loadProgress() {
@@ -340,6 +391,16 @@
     return progress[player];
   }
 
+  function renderPlayerSwitch() {
+    document.querySelectorAll("[data-player]").forEach((button) => {
+      const id = button.dataset.player;
+      const profile = profiles[id];
+      button.textContent = playerName(id);
+      button.classList.toggle("active", id === player);
+      if (profile) button.setAttribute("aria-label", `${playerName(id)}. ${profile.mode}.`);
+    });
+  }
+
   function setupLevelPicker() {
     levelSelect.innerHTML = levels
       .map((level, index) => `<option value="${index}">${index + 1}. ${level.title}</option>`)
@@ -349,20 +410,22 @@
 
   function applyProfile() {
     const profile = profiles[player];
-    document.body.classList.toggle("alex-mode", player === "Alex");
-    document.body.classList.toggle("theme-emmy", player === "Emmy");
-    document.body.classList.toggle("theme-alex", player === "Alex");
+    const displayName = playerName();
+    document.body.classList.toggle("explorer-mode", player === "Explorer");
+    document.body.classList.toggle("theme-builder", player === "Builder");
+    document.body.classList.toggle("theme-explorer", player === "Explorer");
     syncPreviewButton();
-    profileAvatar.textContent = profile.avatar;
+    renderPlayerSwitch();
+    profileAvatar.textContent = displayName.charAt(0).toUpperCase() || profile.avatar;
     profileMode.textContent = profile.mode;
-    profileName.textContent = player;
+    profileName.textContent = displayName;
     profileLine.textContent = profile.line;
-    profileCard.setAttribute("aria-label", `${player}, ${profile.mode}. ${profile.line}`);
+    profileCard.setAttribute("aria-label", `${displayName}, ${profile.mode}. ${profile.line}`);
   }
 
   function syncPreviewButton() {
     if (!previewBtn) return;
-    const active = player === "Emmy" && codePreviewEnabled;
+    const active = player === "Builder" && codePreviewEnabled;
     previewBtn.classList.toggle("active", active);
     previewBtn.setAttribute("aria-pressed", String(active));
     previewBtn.textContent = active ? "Preview On" : "Preview";
@@ -395,13 +458,13 @@
     renderLessonNotes(level.concept);
     nextBtn.disabled = true;
     if (!keepCode) {
-      alexCommands = [];
-      codeInput.value = player === "Alex" ? "" : level.starter;
-    } else if (player === "Alex") {
-      syncAlexCode();
+      explorerCommands = [];
+      codeInput.value = player === "Explorer" ? "" : level.starter;
+    } else if (player === "Explorer") {
+      syncExplorerCode();
     }
-    renderAlexPlan();
-    setMentor(`Hi ${player}. I can read the mission out loud. Press Read to me, then help Byte.`);
+    renderExplorerPlan();
+    setMentor(`Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
     render();
     updateProgress();
     applyProfile();
@@ -420,7 +483,7 @@
     const record = playerProgress();
     const completed = record.completed || {};
     const completeCount = Object.values(completed).filter(Boolean).length;
-    mapSummary.textContent = `${player}: ${completeCount} of ${levels.length} quests complete`;
+    mapSummary.textContent = `${playerName()}: ${completeCount} of ${levels.length} quests complete`;
     worldMap.innerHTML = levels.map((level, index) => {
       const done = Boolean(completed[index]);
       const current = index === currentLevelIndex;
@@ -474,7 +537,7 @@
     });
   }
 
-  function alexCommandToCode(command) {
+  function explorerCommandToCode(command) {
     if (command === "repeat_move_4") return "repeat(4):\n    move()";
     return command;
   }
@@ -590,8 +653,8 @@
   function displayState() {
     if (running || state.won) return state;
     let preview = null;
-    if (player === "Alex" && alexCommands.length > 0) preview = simulatePlan(alexCommands);
-    if (player === "Emmy" && codePreviewEnabled && codeInput.value.trim()) {
+    if (player === "Explorer" && explorerCommands.length > 0) preview = simulatePlan(explorerCommands);
+    if (player === "Builder" && codePreviewEnabled && codeInput.value.trim()) {
       try {
         preview = simulateCodePreview(codeInput.value);
       } catch (error) {
@@ -610,13 +673,13 @@
   }
 
   function ghostPathKeys() {
-    if (player !== "Alex") return new Set();
+    if (player !== "Explorer") return new Set();
     const level = levels[currentLevelIndex];
-    const solution = level.alexSolution || [];
+    const solution = level.explorerSolution || [];
     if (!solution.length) return new Set();
-    const visibleCommands = solution.slice(0, Math.min(solution.length, Math.max(alexCommands.length + 3, 4)));
+    const visibleCommands = solution.slice(0, Math.min(solution.length, Math.max(explorerCommands.length + 3, 4)));
     const sim = simulatePlan(visibleCommands, level);
-    return new Set((sim.path || []).slice(Math.max(0, expandVisualCommands(alexCommands).filter((command) => command === "move()").length - 1)));
+    return new Set((sim.path || []).slice(Math.max(0, expandVisualCommands(explorerCommands).filter((command) => command === "move()").length - 1)));
   }
 
   function render() {
@@ -832,7 +895,7 @@
         state.won = true;
         completeLevel();
       } else {
-        setMentor(`Nice try, ${player}. Byte still sees ${state.gems.size} gem${state.gems.size === 1 ? "" : "s"}. What command collects a gem?`);
+        setMentor(`Nice try, ${playerName()}. Byte still sees ${state.gems.size} gem${state.gems.size === 1 ? "" : "s"}. What command collects a gem?`);
       }
     } catch (error) {
       render();
@@ -853,7 +916,7 @@
     saveProgress();
     nextBtn.disabled = currentLevelIndex >= levels.length - 1;
     missionPanel.classList.add("complete");
-    setMentor(`Mission complete, ${player}! Byte used ${state.steps} steps. ${rating(state.steps, levels[currentLevelIndex].maxSteps)}`);
+    setMentor(`Mission complete, ${playerName()}! Byte used ${state.steps} steps. ${rating(state.steps, levels[currentLevelIndex].maxSteps)}`);
     showSuccess();
     updateProgress();
     render();
@@ -862,14 +925,14 @@
   function showSuccess() {
     const finalMission = currentLevelIndex >= levels.length - 1;
     successText.textContent = finalMission
-      ? `${player} finished the current quest path. Byte is ready for the next world.`
-      : `${player} solved "${levels[currentLevelIndex].title}" in ${state.steps} steps.`;
+      ? `${playerName()} finished the current quest path. Byte is ready for the next world.`
+      : `${playerName()} solved "${levels[currentLevelIndex].title}" in ${state.steps} steps.`;
     successNextBtn.textContent = finalMission ? "Stay Here" : "Next Mission";
     successModal.classList.remove("hidden");
   }
 
   function updateProgress() {
-    progressName.textContent = player;
+    progressName.textContent = playerName();
     const p = playerProgress();
     const complete = Object.values(p.completed).filter(Boolean).length;
     const percent = Math.round((complete / levels.length) * 100);
@@ -883,66 +946,66 @@
     mentorText.textContent = message;
   }
 
-  function syncAlexCode() {
-    if (player !== "Alex") return;
-    codeInput.value = alexCommands.map(alexCommandToCode).join("\n");
+  function syncExplorerCode() {
+    if (player !== "Explorer") return;
+    codeInput.value = explorerCommands.map(explorerCommandToCode).join("\n");
   }
 
-  function renderAlexPlan() {
-    if (!alexPlan) return;
-    if (player !== "Alex") {
-      alexPlan.innerHTML = "";
+  function renderExplorerPlan() {
+    if (!explorerPlan) return;
+    if (player !== "Explorer") {
+      explorerPlan.innerHTML = "";
       return;
     }
 
-    if (!alexCommands.length) {
-      alexPlan.innerHTML = '<span class="plan-token">Tap a move</span>';
+    if (!explorerCommands.length) {
+      explorerPlan.innerHTML = '<span class="plan-token">Tap a move</span>';
       return;
     }
 
-    alexPlan.innerHTML = alexCommands.map((command) => {
+    explorerPlan.innerHTML = explorerCommands.map((command) => {
       const item = visualLabels[command] || { icon: "•", label: command };
       return `<span class="plan-token"><span>${item.icon}</span>${item.label}</span>`;
     }).join("");
   }
 
-  function addAlexCommand(command) {
-    if (alexCommands.length >= 24) {
+  function addExplorerCommand(command) {
+    if (explorerCommands.length >= 24) {
       setMentor("That is a big plan. Try running it and watching Byte.");
       return;
     }
-    alexCommands.push(command);
-    syncAlexCode();
-    renderAlexPlan();
+    explorerCommands.push(command);
+    syncExplorerCode();
+    renderExplorerPlan();
     render();
     const item = visualLabels[command];
     playCommandVoice(command);
     setMentor(item ? `${item.label} added. Tap Run My Plan when Byte is ready.` : "Command added.");
   }
 
-  function undoAlexCommand() {
-    alexCommands.pop();
-    syncAlexCode();
-    renderAlexPlan();
+  function undoExplorerCommand() {
+    explorerCommands.pop();
+    syncExplorerCode();
+    renderExplorerPlan();
     render();
-    setMentor(alexCommands.length ? "Last move removed." : "Plan cleared. Tap a move to start.");
+    setMentor(explorerCommands.length ? "Last move removed." : "Plan cleared. Tap a move to start.");
   }
 
-  function helpAlexPlan() {
-    const solution = levels[currentLevelIndex].alexSolution || [];
-    if (alexCommands.length >= solution.length) {
+  function helpExplorerPlan() {
+    const solution = levels[currentLevelIndex].explorerSolution || [];
+    if (explorerCommands.length >= solution.length) {
       setMentor("Your plan has all the steps. Tap Run My Plan.");
       return;
     }
 
-    const nextCommand = solution[alexCommands.length];
-    addAlexCommand(nextCommand);
+    const nextCommand = solution[explorerCommands.length];
+    addExplorerCommand(nextCommand);
     const item = visualLabels[nextCommand];
     setMentor(item ? `Nova added ${item.label}. Follow the glowing path.` : "Nova added the next step.");
   }
 
   function playCommandVoice(command) {
-    if (!commandAudioPlayer || player !== "Alex") return;
+    if (!commandAudioPlayer || player !== "Explorer") return;
     const item = visualLabels[command];
     if (!item || !item.voice) return;
     commandAudioPlayer.pause();
@@ -954,7 +1017,7 @@
   }
 
   function playUiVoice(name) {
-    if (!commandAudioPlayer || player !== "Alex") return;
+    if (!commandAudioPlayer || player !== "Explorer") return;
     commandAudioPlayer.pause();
     commandAudioPlayer.currentTime = 0;
     commandAudioPlayer.src = `assets/voice/command-${name}.mp3`;
@@ -963,12 +1026,12 @@
     if (playPromise && typeof playPromise.catch === "function") playPromise.catch(() => {});
   }
 
-  function alexPlanWarning() {
-    if (player !== "Alex") return "";
-    if (!alexCommands.length) return "Tap a move first, or press Help Me.";
-    const sim = simulatePlan(alexCommands);
+  function explorerPlanWarning() {
+    if (player !== "Explorer") return "";
+    if (!explorerCommands.length) return "Tap a move first, or press Help Me.";
+    const sim = simulatePlan(explorerCommands);
     if (!sim.ok) return sim.reason;
-    if (alexCommands.length < 2) return "Try adding a few more moves before running.";
+    if (explorerCommands.length < 2) return "Try adding a few more moves before running.";
     return "";
   }
 
@@ -1025,7 +1088,7 @@
     audioPlayer.currentTime = 0;
     audioPlayer.src = missionVoicePath();
     audioPlayer.volume = 1;
-    audioPlayer.playbackRate = player === "Alex" ? 0.96 : 1;
+    audioPlayer.playbackRate = player === "Explorer" ? 0.96 : 1;
 
     readBtn.classList.add("speaking");
     readBtn.innerHTML = '<span aria-hidden="true">■</span> Reading';
@@ -1088,8 +1151,8 @@
       const utterance = new SpeechSynthesisUtterance(chunks[index]);
       index += 1;
       if (voice) utterance.voice = voice;
-      utterance.rate = player === "Alex" ? 0.78 : 0.88;
-      utterance.pitch = player === "Alex" ? 1.12 : 1.03;
+      utterance.rate = player === "Explorer" ? 0.78 : 0.88;
+      utterance.pitch = player === "Explorer" ? 1.12 : 1.03;
       utterance.volume = 1;
       utterance.onend = readNext;
       utterance.onerror = () => {
@@ -1123,25 +1186,25 @@
     codeInput.value = next;
     codeInput.focus();
     codeInput.selectionStart = codeInput.selectionEnd = before.length + prefix.length + text.length;
-    if (codePreviewEnabled && player === "Emmy") render();
+    if (codePreviewEnabled && player === "Builder") render();
   }
 
   function refreshCodePreview() {
-    if (codePreviewEnabled && player === "Emmy") render();
+    if (codePreviewEnabled && player === "Builder") render();
   }
 
   function renderParentStats() {
     if (!parentStats) return;
-    const names = ["Emmy", "Alex"];
-    parentStats.innerHTML = names.map((name) => {
-      const record = progress[name] || { completed: {}, bestSteps: {} };
+    parentStats.innerHTML = PROFILE_IDS.map((id) => {
+      const record = progress[id] || { completed: {}, bestSteps: {} };
       const complete = Object.values(record.completed || {}).filter(Boolean).length;
       const bestTotal = Object.values(record.bestSteps || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+      const profile = profiles[id];
       return `
         <div class="parent-stat">
           <div>
-            <strong>${name}</strong>
-            <span>${complete} of ${levels.length} missions complete</span>
+            <strong>${escapeHtml(playerName(id))}</strong>
+            <span>${profile.mode}: ${complete} of ${levels.length} missions complete</span>
           </div>
           <strong>${bestTotal || "-"} steps</strong>
         </div>
@@ -1149,11 +1212,28 @@
     }).join("");
   }
 
+  function renderParentSetup() {
+    if (builderNameInput) builderNameInput.value = playerName("Builder");
+    if (explorerNameInput) explorerNameInput.value = playerName("Explorer");
+  }
+
+  function savePlayerSetup() {
+    profileNames = {
+      Builder: cleanProfileName(builderNameInput ? builderNameInput.value : "", DEFAULT_PROFILE_NAMES.Builder),
+      Explorer: cleanProfileName(explorerNameInput ? explorerNameInput.value : "", DEFAULT_PROFILE_NAMES.Explorer),
+    };
+    saveProfileNames();
+    renderParentSetup();
+    applyProfile();
+    updateProgress();
+    setMentor(`Saved player names. ${playerName()} is ready for the next quest.`);
+  }
+
   function renderRewards() {
     if (!rewardGrid) return;
     const record = playerProgress();
     const unlocked = rewards.filter((_, index) => record.completed[index]).length;
-    rewardName.textContent = player;
+    rewardName.textContent = playerName();
     rewardIntro.textContent = `${unlocked} of ${rewards.length} badges unlocked.`;
     rewardGrid.innerHTML = rewards.map((reward, index) => {
       const isUnlocked = Boolean(record.completed[index]);
@@ -1181,6 +1261,7 @@
   }
 
   function openParentPanel() {
+    renderParentSetup();
     renderParentStats();
     exportBox.classList.remove("visible");
     parentPanel.classList.remove("hidden");
@@ -1196,10 +1277,10 @@
     const firstTry = resetProgressBtn.dataset.confirm !== "true";
     if (firstTry) {
       resetProgressBtn.dataset.confirm = "true";
-      resetProgressBtn.textContent = `Confirm reset ${player}`;
+      resetProgressBtn.textContent = `Confirm reset ${playerName()}`;
       setTimeout(() => {
         resetProgressBtn.dataset.confirm = "";
-        resetProgressBtn.textContent = "Reset Current Child";
+        resetProgressBtn.textContent = "Reset Current Player";
       }, 3000);
       return;
     }
@@ -1207,7 +1288,7 @@
     progress[player] = { completed: {}, bestSteps: {} };
     saveProgress();
     resetProgressBtn.dataset.confirm = "";
-    resetProgressBtn.textContent = "Reset Current Child";
+    resetProgressBtn.textContent = "Reset Current Player";
     initLevel(0, false, { speak: false });
     renderParentStats();
   }
@@ -1215,9 +1296,8 @@
   document.querySelectorAll("[data-player]").forEach((button) => {
     button.addEventListener("click", () => {
       player = button.dataset.player;
-      document.querySelectorAll("[data-player]").forEach((item) => item.classList.toggle("active", item === button));
       initLevel(currentLevelIndex, false, { speak: false });
-      if (player === "Alex") speakMission();
+      if (player === "Explorer") speakMission();
     });
   });
 
@@ -1237,33 +1317,33 @@
   });
 
   document.querySelectorAll("[data-visual-command]").forEach((button) => {
-    button.addEventListener("click", () => addAlexCommand(button.dataset.visualCommand));
+    button.addEventListener("click", () => addExplorerCommand(button.dataset.visualCommand));
   });
 
   worldMap.addEventListener("click", (event) => {
     const button = event.target.closest("[data-map-level]");
     if (!button || button.disabled) return;
-    initLevel(Number(button.dataset.mapLevel), false, { speak: voiceEnabled || player === "Alex" });
+    initLevel(Number(button.dataset.mapLevel), false, { speak: voiceEnabled || player === "Explorer" });
   });
 
   runBtn.addEventListener("click", runProgram);
   readBtn.addEventListener("click", speakMission);
-  alexRunBtn.addEventListener("click", () => {
+  explorerRunBtn.addEventListener("click", () => {
     playUiVoice("run-plan");
-    const warning = alexPlanWarning();
+    const warning = explorerPlanWarning();
     if (warning) {
       setMentor(warning);
       return;
     }
     runProgram();
   });
-  alexClearBtn.addEventListener("click", () => {
+  explorerClearBtn.addEventListener("click", () => {
     playUiVoice("undo");
-    undoAlexCommand();
+    undoExplorerCommand();
   });
-  alexHelpBtn.addEventListener("click", () => {
+  explorerHelpBtn.addEventListener("click", () => {
     playUiVoice("help-me");
-    helpAlexPlan();
+    helpExplorerPlan();
   });
   resetBtn.addEventListener("click", () => initLevel(currentLevelIndex, true, { speak: false }));
   clearBtn.addEventListener("click", () => {
@@ -1279,13 +1359,13 @@
   hintBtn.addEventListener("click", () => {
     const hint = levels[currentLevelIndex].hint;
     setMentor(hint);
-    if (voiceEnabled || player === "Alex") speak(`Hint. ${hint}`);
+    if (voiceEnabled || player === "Explorer") speak(`Hint. ${hint}`);
   });
-  nextBtn.addEventListener("click", () => initLevel(Math.min(currentLevelIndex + 1, levels.length - 1), false, { speak: voiceEnabled || player === "Alex" }));
-  levelSelect.addEventListener("change", () => initLevel(Number(levelSelect.value), false, { speak: voiceEnabled || player === "Alex" }));
+  nextBtn.addEventListener("click", () => initLevel(Math.min(currentLevelIndex + 1, levels.length - 1), false, { speak: voiceEnabled || player === "Explorer" }));
+  levelSelect.addEventListener("change", () => initLevel(Number(levelSelect.value), false, { speak: voiceEnabled || player === "Explorer" }));
   startBtn.addEventListener("click", () => {
     welcomeModal.classList.add("hidden");
-    if (player === "Alex") speakMission();
+    if (player === "Explorer") speakMission();
   });
   replayBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
@@ -1293,7 +1373,7 @@
   });
   successNextBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
-    if (currentLevelIndex < levels.length - 1) initLevel(currentLevelIndex + 1, false, { speak: voiceEnabled || player === "Alex" });
+    if (currentLevelIndex < levels.length - 1) initLevel(currentLevelIndex + 1, false, { speak: voiceEnabled || player === "Explorer" });
   });
   successRewardsBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
@@ -1303,6 +1383,7 @@
   rewardsBtn.addEventListener("click", openRewardPanel);
   closeParentBtn.addEventListener("click", closeParentPanel);
   closeRewardsBtn.addEventListener("click", closeRewardPanel);
+  if (saveNamesBtn) saveNamesBtn.addEventListener("click", savePlayerSetup);
   exportBtn.addEventListener("click", () => {
     exportBox.value = JSON.stringify({ exportedAt: new Date().toISOString(), progress }, null, 2);
     exportBox.classList.add("visible");

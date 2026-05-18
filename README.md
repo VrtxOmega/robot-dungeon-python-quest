@@ -1,6 +1,6 @@
 # Robot Dungeon: Python Quest
 
-A first playable coding adventure built for Emmy and Alex.
+A first playable coding adventure for young coders.
 
 Kids guide Byte the robot through grid missions with Python-style commands:
 
@@ -27,7 +27,8 @@ npm run dev
 ## What Is In This First Build
 
 - 12 playable missions
-- Emmy and Alex player profiles
+- Builder Mode and Explorer Mode player profiles
+- Parent setup for locally saved player display names
 - Local progress saving in `localStorage`
 - Python-style command parser
 - Loops and conditionals
