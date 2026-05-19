@@ -81,6 +81,17 @@
             <strong id="stepLabel">0</strong>
           </div>
         </div>
+        <div class="byte-stage" aria-live="polite">
+          <div id="byteCompanion" class="byte-companion mood-ready" aria-hidden="true">
+            <span class="byte-antenna"></span>
+            <span class="byte-face"></span>
+          </div>
+          <div class="byte-stage-copy">
+            <span class="tiny-label">Byte's Quest</span>
+            <strong id="byteSpeech">Ready for launch.</strong>
+            <div class="boost-meter" aria-hidden="true"><span id="boostFill"></span></div>
+          </div>
+        </div>
         <div class="quest-hud" aria-live="polite">
           <div>
             <span class="tiny-label">Treasure</span>
@@ -97,6 +108,7 @@
         </div>
         <div id="board" class="board" aria-label="Robot dungeon grid"></div>
         <div id="fxLayer" class="fx-layer" aria-hidden="true"></div>
+        <div id="actionBanner" class="action-banner" aria-hidden="true">Launch!</div>
       </div>
 
       <aside class="code-panel">
@@ -199,6 +211,10 @@
       </div>
       <span class="badge">Mission Complete</span>
       <h2 id="successTitle">Byte did it!</h2>
+      <div class="success-byte-stage" aria-hidden="true">
+        <div class="success-byte"></div>
+        <strong id="successBanner">Quest clear!</strong>
+      </div>
       <p id="successText">Great coding.</p>
       <p id="successSparkText" class="success-sparks">Sparks earned.</p>
       <div class="success-actions">

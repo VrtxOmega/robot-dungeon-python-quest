@@ -203,6 +203,8 @@
   let profileNames = loadProfileNames();
   let byteStyle = loadByteStyle();
   let missionSparks = 0;
+  let missionEnergy = 0;
+  let actionTimer = null;
   let audioContext = null;
 
   const board = document.getElementById("board");
@@ -242,7 +244,11 @@
   const treasureText = document.getElementById("treasureText");
   const sparkCount = document.getElementById("sparkCount");
   const byteMood = document.getElementById("byteMood");
+  const byteCompanion = document.getElementById("byteCompanion");
+  const byteSpeech = document.getElementById("byteSpeech");
+  const boostFill = document.getElementById("boostFill");
   const fxLayer = document.getElementById("fxLayer");
+  const actionBanner = document.getElementById("actionBanner");
   const stars = document.getElementById("stars");
   const progressName = document.getElementById("progressName");
   const progressText = document.getElementById("progressText");
@@ -254,6 +260,7 @@
   const successModal = document.getElementById("successModal");
   const successText = document.getElementById("successText");
   const successSparkText = document.getElementById("successSparkText");
+  const successBanner = document.getElementById("successBanner");
   const parentPanel = document.getElementById("parentPanel");
   const parentStats = document.getElementById("parentStats");
   const exportBox = document.getElementById("exportBox");
@@ -299,6 +306,20 @@
     "Quest clear!",
     "Nice robot brain!",
   ];
+
+  const actionWords = {
+    launch: "Byte launch!",
+    move: "Zoom!",
+    turn_left: "Left spin!",
+    turn_right: "Right spin!",
+    collect: "Gem grab!",
+    repeat: "Loop spell!",
+    sensor: "Sensor check!",
+    portal: "Portal pop!",
+    bump: "Oops, bonk!",
+    win: "Quest clear!",
+    style: "New Byte!",
+  };
 
   const lessonNotes = {
     Sequence: ["Go one line at a time.", "When Byte lands on a gem, collect it."],
@@ -453,9 +474,40 @@
     const found = Math.max(0, total - state.gems.size - state.batteries.size);
     if (treasureText) treasureText.textContent = `${found}/${total}`;
     if (sparkCount) sparkCount.textContent = String(missionSparks);
+    if (boostFill) boostFill.style.width = `${Math.min(100, missionEnergy)}%`;
     if (byteMood) {
       byteMood.textContent = state.won ? "Happy" : running ? "Zooming" : found > 0 ? "Glowing" : "Ready";
     }
+  }
+
+  function setByteMood(text, mood = "ready") {
+    if (byteSpeech) byteSpeech.textContent = text;
+    if (!byteCompanion) return;
+    byteCompanion.classList.remove("mood-ready", "mood-zoom", "mood-happy", "mood-bump", "mood-magic");
+    byteCompanion.classList.add(`mood-${mood}`);
+  }
+
+  function chargeEnergy(amount) {
+    missionEnergy = Math.max(0, Math.min(100, missionEnergy + amount));
+    updateQuestHud();
+  }
+
+  function announceAction(type, text = actionWords[type] || "Go Byte!", energy = 4) {
+    chargeEnergy(energy);
+    setByteMood(text, type === "bump" ? "bump" : type === "win" || type === "collect" ? "happy" : type === "repeat" || type === "sensor" || type === "portal" ? "magic" : "zoom");
+    if (!actionBanner) return;
+    if (actionTimer) clearTimeout(actionTimer);
+    actionBanner.textContent = text;
+    actionBanner.className = `action-banner show ${type}`;
+    actionTimer = setTimeout(() => {
+      actionBanner.className = "action-banner";
+    }, 720);
+  }
+
+  function rememberStep(point) {
+    if (!state.trail) state.trail = [];
+    state.trail.push(key(point));
+    if (state.trail.length > 10) state.trail = state.trail.slice(-10);
   }
 
   function renderPlayerSwitch() {
@@ -505,6 +557,7 @@
     runBtn.disabled = false;
     if (options.resetPreview !== false) codePreviewEnabled = false;
     missionSparks = 0;
+    missionEnergy = 0;
     currentLevelIndex = Math.max(0, Math.min(levels.length - 1, index));
     const level = levels[currentLevelIndex];
     state = {
@@ -515,6 +568,7 @@
       steps: 0,
       inventory: { battery: 0 },
       won: false,
+      trail: [key(level.robot)],
     };
 
     levelSelect.value = String(index);
@@ -532,6 +586,7 @@
       syncExplorerCode();
     }
     renderExplorerPlan();
+    setByteMood("Ready for launch.", "ready");
     setMentor(`Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
     render();
     updateProgress();
@@ -758,6 +813,7 @@
     board.style.setProperty("--robot-rotation", `${ROTATION[view.dir]}deg`);
     facingLabel.textContent = view.dir;
     stepLabel.textContent = String(view.steps);
+    const trails = new Set((state.trail || []).slice(0, -1));
     const ghosts = ghostPathKeys();
 
     for (let y = 0; y < level.size; y += 1) {
@@ -770,6 +826,7 @@
         if (view.batteries.has(`${x},${y}`)) cell.classList.add("battery");
         if (tileAt(x, y, "bugs")) cell.classList.add("bug");
         if (portalAt(x, y)) cell.classList.add("portal");
+        if (trails.has(`${x},${y}`)) cell.classList.add("step-trail");
         if (ghosts.has(`${x},${y}`)) cell.classList.add("ghost-path");
         if (view.robot.x === x && view.robot.y === y) cell.classList.add("robot");
         board.appendChild(cell);
@@ -869,6 +926,7 @@
     for (const command of commands) {
       if (token !== runToken) throw new Error("Run stopped.");
       if (command.type === "repeat") {
+        announceAction("repeat", `Loop x${command.count}!`, 5);
         for (let count = 0; count < command.count; count += 1) {
           await executeCommands(command.body, token);
         }
@@ -877,6 +935,7 @@
 
       if (command.type === "if") {
         const passes = command.test === "wall_ahead" ? wallAhead() : gemHere();
+        announceAction("sensor", passes ? "Sensor yes!" : "Sensor no!", 3);
         if (passes) await executeCommands(command.body, token);
         continue;
       }
@@ -906,6 +965,7 @@
       state.dir = DIRECTIONS[(index + 3) % 4];
       state.steps += 1;
       playTone("turn");
+      announceAction("turn_left", actionWords.turn_left, 5);
       return;
     }
 
@@ -914,12 +974,14 @@
       state.dir = DIRECTIONS[(index + 1) % 4];
       state.steps += 1;
       playTone("turn");
+      announceAction("turn_right", actionWords.turn_right, 5);
       return;
     }
 
     if (command.type === "collect") {
       const pos = key(state.robot);
       let collected = false;
+      let collectText = "Gem grab!";
       if (state.gems.has(pos)) {
         state.gems.delete(pos);
         collected = true;
@@ -928,13 +990,17 @@
         state.batteries.delete(pos);
         state.inventory.battery += 1;
         collected = true;
+        collectText = "Power grab!";
       }
       state.steps += 1;
       if (collected) {
         missionSparks += 10;
         playTone("collect");
-        popSpark("+10 sparks", "collect");
+        announceAction("collect", collectText, 18);
+        popSpark(collectText, "collect mega");
         pulseBoard("collect");
+      } else {
+        announceAction("sensor", "Nothing here.", 2);
       }
       return;
     }
@@ -942,6 +1008,7 @@
     if (command.type === "move") {
       if (wallAhead()) {
         playTone("bump");
+        announceAction("bump", actionWords.bump, 0);
         pulseBoard("bump");
         throw new Error("Bonk. Byte bumped a wall. Try a turn before that move.");
       }
@@ -949,6 +1016,7 @@
       const next = { x: state.robot.x + delta.x, y: state.robot.y + delta.y };
       if (tileAt(next.x, next.y, "bugs")) {
         playTone("bump");
+        announceAction("bump", "Bug tile!", 0);
         pulseBoard("bump");
         throw new Error("Byte touched a bug tile. Find a path around it.");
       }
@@ -956,10 +1024,13 @@
       const portal = portalAt(next.x, next.y);
       if (portal) {
         state.robot = clonePoint(portal.to);
-        popSpark("Portal pop!", "portal");
+        announceAction("portal", actionWords.portal, 10);
+        popSpark("Portal pop!", "portal mega");
       }
+      rememberStep(state.robot);
       state.steps += 1;
       playTone("move");
+      if (!portal) announceAction("move", actionWords.move, 7);
     }
   }
 
@@ -1034,6 +1105,7 @@
     runToken = token;
     running = true;
     runBtn.disabled = true;
+    announceAction("launch", actionWords.launch, 8);
 
     try {
       const commands = parseProgram(codeInput.value);
@@ -1061,6 +1133,7 @@
   function completeLevel() {
     const p = playerProgress();
     missionSparks += 20;
+    missionEnergy = 100;
     p.completed[currentLevelIndex] = true;
     const best = p.bestSteps[currentLevelIndex];
     if (!best || state.steps < best) p.bestSteps[currentLevelIndex] = state.steps;
@@ -1069,7 +1142,8 @@
     missionPanel.classList.add("complete");
     setMentor(`Mission complete, ${playerName()}! Byte used ${state.steps} steps. ${rating(state.steps, levels[currentLevelIndex].maxSteps)}`);
     playTone("win");
-    popSpark("Quest clear!", "win");
+    announceAction("win", actionWords.win, 0);
+    popSpark("Quest clear!", "win mega");
     pulseBoard("win");
     showSuccess();
     updateProgress();
@@ -1085,6 +1159,7 @@
       const cheer = successCheers[currentLevelIndex % successCheers.length];
       successSparkText.textContent = `${cheer} ${missionSparks} sparks earned.`;
     }
+    if (successBanner) successBanner.textContent = finalMission ? "Crown coder!" : "Quest clear!";
     successNextBtn.textContent = finalMission ? "Stay Here" : "Next Mission";
     successModal.classList.remove("hidden");
   }
@@ -1470,7 +1545,7 @@
       saveByteStyle();
       applyByteStyle();
       playTone("start");
-      popSpark(byteStyles[byteStyle].label, "style");
+      announceAction("style", byteStyles[byteStyle].label, 6);
     });
   });
 
