@@ -58,6 +58,7 @@ Parent setup lets a grown-up rename the two profiles. Names stay in the browser 
 - Mission narration and command voice clips
 - Per-profile reward badges
 - Byte Workshop with per-profile unlockable robot cosmetics
+- Builder Lab for local create/save/playtest custom dungeons
 - Parent progress drawer with local export and reset controls
 - Mobile-friendly layout with no required app install
 

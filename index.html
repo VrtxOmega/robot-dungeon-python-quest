@@ -35,6 +35,7 @@
         <label for="levelSelect">Mission</label>
         <select id="levelSelect"></select>
       </div>
+      <button id="creatorBtn" class="parent-button create-button" type="button">Create</button>
       <button id="rewardsBtn" class="parent-button" type="button">Rewards</button>
       <button id="soundBtn" class="parent-button sound-button" type="button" aria-pressed="true">SFX On</button>
       <button id="parentBtn" class="parent-button" type="button">Parent</button>
@@ -280,6 +281,34 @@
         <p id="workshopSummary" class="workshop-summary">Complete quests to unlock robot parts.</p>
         <div id="workshopGrid" class="workshop-grid"></div>
       </section>
+    </div>
+  </div>
+
+  <div id="creatorPanel" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-card creator-card">
+      <div class="drawer-header">
+        <div>
+          <span class="badge">Builder Lab</span>
+          <h2>Build My Dungeon</h2>
+        </div>
+        <button id="closeCreatorBtn" type="button">Close</button>
+      </div>
+      <p class="creator-intro">Tap a tool, then tap squares to build a tiny quest for Byte.</p>
+      <div class="creator-tools" id="creatorPalette" role="group" aria-label="Dungeon building tools">
+        <button class="active" data-creator-tool="floor" type="button"><span>·</span><strong>Floor</strong></button>
+        <button data-creator-tool="start" type="button"><span>🤖</span><strong>Byte</strong></button>
+        <button data-creator-tool="wall" type="button"><span>▦</span><strong>Wall</strong></button>
+        <button data-creator-tool="gem" type="button"><span>◆</span><strong>Gem</strong></button>
+        <button data-creator-tool="bug" type="button"><span>!</span><strong>Bug</strong></button>
+      </div>
+      <div id="creatorGrid" class="creator-grid" aria-label="Editable dungeon grid"></div>
+      <p id="creatorStatus" class="creator-status" aria-live="polite">Place Byte, add a gem, then press Play Test.</p>
+      <div class="creator-actions">
+        <button id="creatorClearBtn" type="button">Clear</button>
+        <button id="creatorResetBtn" type="button">Starter</button>
+        <button id="creatorSaveBtn" type="button">Save</button>
+        <button id="creatorPlayBtn" class="primary" type="button">Play Test</button>
+      </div>
     </div>
   </div>
 

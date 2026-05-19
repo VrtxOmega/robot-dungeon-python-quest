@@ -13,6 +13,7 @@
   const SETTINGS_KEY = "robotDungeonPythonQuest.profileSettings.v1";
   const BYTE_STYLE_KEY = "robotDungeonPythonQuest.byteStyle.v1";
   const SFX_KEY = "robotDungeonPythonQuest.sfxEnabled.v1";
+  const CREATOR_KEY = "robotDungeonPythonQuest.creatorDungeon.v1";
 
   const levels = [
     {
@@ -208,6 +209,10 @@
   let actionTimer = null;
   let soundEnabled = loadSfxPreference();
   let audioContext = null;
+  let creatorLevel = loadCreatorLevel();
+  let creatorDraft = cloneCreatorLevel(creatorLevel);
+  let creatorTool = "floor";
+  let playingCreator = false;
 
   const board = document.getElementById("board");
   const codeInput = document.getElementById("codeInput");
@@ -226,10 +231,12 @@
   const explorerRunBtn = document.getElementById("explorerRunBtn");
   const explorerPlan = document.getElementById("explorerPlan");
   const parentBtn = document.getElementById("parentBtn");
+  const creatorBtn = document.getElementById("creatorBtn");
   const rewardsBtn = document.getElementById("rewardsBtn");
   const soundBtn = document.getElementById("soundBtn");
   const closeParentBtn = document.getElementById("closeParentBtn");
   const closeRewardsBtn = document.getElementById("closeRewardsBtn");
+  const closeCreatorBtn = document.getElementById("closeCreatorBtn");
   const exportBtn = document.getElementById("exportBtn");
   const resetProgressBtn = document.getElementById("resetProgressBtn");
   const startBtn = document.getElementById("startBtn");
@@ -271,6 +278,14 @@
   const rewardGrid = document.getElementById("rewardGrid");
   const rewardName = document.getElementById("rewardName");
   const rewardIntro = document.getElementById("rewardIntro");
+  const creatorPanel = document.getElementById("creatorPanel");
+  const creatorPalette = document.getElementById("creatorPalette");
+  const creatorGrid = document.getElementById("creatorGrid");
+  const creatorStatus = document.getElementById("creatorStatus");
+  const creatorClearBtn = document.getElementById("creatorClearBtn");
+  const creatorResetBtn = document.getElementById("creatorResetBtn");
+  const creatorSaveBtn = document.getElementById("creatorSaveBtn");
+  const creatorPlayBtn = document.getElementById("creatorPlayBtn");
   const workshopGrid = document.getElementById("workshopGrid");
   const workshopPreview = document.getElementById("workshopPreview");
   const workshopSummary = document.getElementById("workshopSummary");
@@ -361,6 +376,7 @@
     "Nested loops": ["A repeat can live inside another repeat.", "Tiny steps can make a big shape."],
     Portals: ["Portals pop Byte to a new spot.", "Look where Byte lands before moving again."],
     Review: ["Use moves, turns, repeats, and collect.", "One gem at a time."],
+    Create: ["This dungeon was built in Builder Lab.", "Play Test uses the same code tools as quests."],
   };
 
   const visualLabels = {
@@ -396,6 +412,126 @@
 
   function key(point) {
     return `${point.x},${point.y}`;
+  }
+
+  function defaultCreatorLevel() {
+    return {
+      title: "My Dungeon",
+      concept: "Create",
+      goal: "Build a tiny quest, then code Byte through your own dungeon.",
+      speak: "Builder Lab. Build a tiny quest. Put Byte down, add a gem, then press Play Test.",
+      size: 5,
+      robot: { x: 0, y: 2, dir: "east" },
+      gems: [{ x: 4, y: 2 }],
+      walls: [{ x: 2, y: 1 }, { x: 2, y: 3 }],
+      bugs: [],
+      batteries: [],
+      portals: [],
+      starter: "move()\nmove()\nmove()\nmove()\ncollect()",
+      explorerSolution: [],
+      hint: "This is your dungeon. Try building a clear path from Byte to the gem.",
+      maxSteps: 8,
+      creator: true,
+    };
+  }
+
+  function cloneCreatorLevel(level) {
+    return {
+      ...level,
+      robot: clonePoint(level.robot),
+      gems: (level.gems || []).map(clonePoint),
+      walls: (level.walls || []).map(clonePoint),
+      bugs: (level.bugs || []).map(clonePoint),
+      batteries: (level.batteries || []).map(clonePoint),
+      portals: (level.portals || []).map((portal) => ({ ...portal, to: clonePoint(portal.to) })),
+    };
+  }
+
+  function pointInBounds(point, size = 5) {
+    return point && Number.isInteger(point.x) && Number.isInteger(point.y)
+      && point.x >= 0 && point.y >= 0 && point.x < size && point.y < size;
+  }
+
+  function sanitizePointList(points, size, blocked = new Set()) {
+    const seen = new Set();
+    return (Array.isArray(points) ? points : []).reduce((list, point) => {
+      if (!pointInBounds(point, size)) return list;
+      const id = key(point);
+      if (seen.has(id) || blocked.has(id)) return list;
+      seen.add(id);
+      list.push({ x: point.x, y: point.y });
+      return list;
+    }, []);
+  }
+
+  function normalizeCreatorLevel(value) {
+    const base = defaultCreatorLevel();
+    const source = value && typeof value === "object" ? value : {};
+    const size = 5;
+    const robot = pointInBounds(source.robot, size)
+      ? { x: source.robot.x, y: source.robot.y, dir: DIRECTIONS.includes(source.robot.dir) ? source.robot.dir : "east" }
+      : clonePoint(base.robot);
+    const blocked = new Set([key(robot)]);
+    const walls = sanitizePointList(source.walls, size, blocked);
+    walls.forEach((point) => blocked.add(key(point)));
+    const bugs = sanitizePointList(source.bugs, size, blocked);
+    bugs.forEach((point) => blocked.add(key(point)));
+    const gems = sanitizePointList(source.gems, size, blocked);
+    const hasGemList = Array.isArray(source.gems);
+
+    return {
+      ...base,
+      robot,
+      walls,
+      bugs,
+      gems: hasGemList ? gems : base.gems.map(clonePoint),
+    };
+  }
+
+  function loadCreatorLevel() {
+    try {
+      return normalizeCreatorLevel(JSON.parse(localStorage.getItem(CREATOR_KEY)));
+    } catch (error) {
+      return defaultCreatorLevel();
+    }
+  }
+
+  function saveCreatorLevel() {
+    try {
+      localStorage.setItem(CREATOR_KEY, JSON.stringify(creatorLevel));
+      return true;
+    } catch (error) {
+      setMentor("The dungeon could not be saved in this browser, but Play Test still works.");
+      return false;
+    }
+  }
+
+  function removeCreatorPoint(type, x, y) {
+    creatorDraft[type] = (creatorDraft[type] || []).filter((point) => point.x !== x || point.y !== y);
+  }
+
+  function addCreatorPoint(type, x, y) {
+    creatorDraft[type] = [...(creatorDraft[type] || []), { x, y }];
+  }
+
+  function clearCreatorCell(x, y) {
+    ["walls", "gems", "bugs"].forEach((type) => removeCreatorPoint(type, x, y));
+  }
+
+  function creatorCellKind(x, y, level = creatorDraft) {
+    if (level.robot.x === x && level.robot.y === y) return "start";
+    if ((level.gems || []).some((point) => point.x === x && point.y === y)) return "gem";
+    if ((level.walls || []).some((point) => point.x === x && point.y === y)) return "wall";
+    if ((level.bugs || []).some((point) => point.x === x && point.y === y)) return "bug";
+    return "floor";
+  }
+
+  function creatorIcon(kind) {
+    return { start: "🤖", gem: "◆", wall: "▦", bug: "!", floor: "" }[kind] || "";
+  }
+
+  function currentLevel() {
+    return playingCreator ? creatorLevel : levels[currentLevelIndex];
   }
 
   function cleanProfileName(value, fallback) {
@@ -560,7 +696,7 @@
     document.body.classList.add(...cosmeticClasses());
   }
 
-  function totalTreasure(level = levels[currentLevelIndex]) {
+  function totalTreasure(level = currentLevel()) {
     return (level.gems || []).length + (level.batteries || []).length;
   }
 
@@ -622,9 +758,10 @@
   }
 
   function setupLevelPicker() {
-    levelSelect.innerHTML = levels
-      .map((level, index) => `<option value="${index}">${index + 1}. ${level.title}</option>`)
-      .join("");
+    levelSelect.innerHTML = [
+      ...levels.map((level, index) => `<option value="${index}">${index + 1}. ${level.title}</option>`),
+      '<option value="creator">★ My Dungeon</option>',
+    ].join("");
     renderWorldMap();
   }
 
@@ -654,14 +791,29 @@
   }
 
   function initLevel(index, keepCode, options = {}) {
+    playingCreator = false;
+    currentLevelIndex = Math.max(0, Math.min(levels.length - 1, index));
+    startActiveLevel(levels[currentLevelIndex], keepCode, options);
+  }
+
+  function initCreatorLevel(keepCode = false, options = {}) {
+    playingCreator = true;
+    creatorLevel = normalizeCreatorLevel(creatorLevel);
+    startActiveLevel(creatorLevel, keepCode, options);
+  }
+
+  function restartCurrentLevel(keepCode, options = {}) {
+    if (playingCreator) initCreatorLevel(keepCode, options);
+    else initLevel(currentLevelIndex, keepCode, options);
+  }
+
+  function startActiveLevel(level, keepCode, options = {}) {
     runToken += 1;
     running = false;
     runBtn.disabled = false;
     if (options.resetPreview !== false) codePreviewEnabled = false;
     missionSparks = 0;
     missionEnergy = 0;
-    currentLevelIndex = Math.max(0, Math.min(levels.length - 1, index));
-    const level = levels[currentLevelIndex];
     state = {
       robot: clonePoint(level.robot),
       dir: level.robot.dir,
@@ -673,11 +825,11 @@
       trail: [key(level.robot)],
     };
 
-    levelSelect.value = String(index);
+    levelSelect.value = playingCreator ? "creator" : String(currentLevelIndex);
     levelTitle.textContent = level.title;
     levelGoal.textContent = level.goal;
     conceptLabel.textContent = level.concept;
-    missionNumber.textContent = String(currentLevelIndex + 1).padStart(2, "0");
+    missionNumber.textContent = playingCreator ? "★" : String(currentLevelIndex + 1).padStart(2, "0");
     missionPanel.classList.remove("complete");
     renderLessonNotes(level.concept);
     nextBtn.disabled = true;
@@ -690,7 +842,9 @@
     renderExplorerPlan();
     applyCosmetics();
     setByteMood("Ready for launch.", "ready");
-    setMentor(`Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
+    setMentor(playingCreator
+      ? `${playerName()}'s dungeon is live. Run code to test the path, or press Create to edit it.`
+      : `Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
     render();
     updateProgress();
     applyProfile();
@@ -712,7 +866,7 @@
     mapSummary.textContent = `${playerName()}: ${completeCount} of ${levels.length} quests complete`;
     worldMap.innerHTML = levels.map((level, index) => {
       const done = Boolean(completed[index]);
-      const current = index === currentLevelIndex;
+      const current = !playingCreator && index === currentLevelIndex;
       const unlocked = isMissionUnlocked(index);
       const classes = ["map-node", done ? "complete" : "", current ? "current" : "", unlocked ? "unlocked" : "locked"].filter(Boolean).join(" ");
       const label = done ? "Done" : current ? "Now" : unlocked ? "Open" : "Locked";
@@ -732,17 +886,17 @@
   }
 
   function tileAt(x, y, type) {
-    const level = levels[currentLevelIndex];
+    const level = currentLevel();
     return (level[type] || []).some((point) => point.x === x && point.y === y);
   }
 
   function portalAt(x, y) {
-    const level = levels[currentLevelIndex];
+    const level = currentLevel();
     return (level.portals || []).find((point) => point.x === x && point.y === y);
   }
 
   function inBounds(point) {
-    const size = levels[currentLevelIndex].size;
+    const size = currentLevel().size;
     return point.x >= 0 && point.y >= 0 && point.x < size && point.y < size;
   }
 
@@ -830,7 +984,7 @@
     return null;
   }
 
-  function simulatePlan(commands, level = levels[currentLevelIndex]) {
+  function simulatePlan(commands, level = currentLevel()) {
     const sim = createSimulation(level);
     const expandedCommands = expandVisualCommands(commands);
 
@@ -868,7 +1022,7 @@
     return null;
   }
 
-  function simulateCodePreview(source, level = levels[currentLevelIndex]) {
+  function simulateCodePreview(source, level = currentLevel()) {
     const commands = parseProgram(source);
     if (commands.length === 0 || countCommands(commands) > 80) return null;
     const sim = createSimulation(level);
@@ -900,7 +1054,7 @@
 
   function ghostPathKeys() {
     if (player !== "Explorer") return new Set();
-    const level = levels[currentLevelIndex];
+    const level = currentLevel();
     const solution = level.explorerSolution || [];
     if (!solution.length) return new Set();
     const visibleCommands = solution.slice(0, Math.min(solution.length, Math.max(explorerCommands.length + 3, 4)));
@@ -929,7 +1083,7 @@
   }
 
   function render() {
-    const level = levels[currentLevelIndex];
+    const level = currentLevel();
     const view = displayState();
     const cosmetics = currentCosmetics();
     board.style.setProperty("--cols", level.size);
@@ -960,8 +1114,8 @@
       }
     }
 
-    const best = playerProgress().bestSteps[currentLevelIndex];
-    stars.textContent = best ? rating(best, level.maxSteps) : "☆ ☆ ☆";
+    const best = !playingCreator ? playerProgress().bestSteps[currentLevelIndex] : null;
+    stars.textContent = playingCreator ? "★ Build ★" : best ? rating(best, level.maxSteps) : "☆ ☆ ☆";
     updateQuestHud();
   }
 
@@ -1390,7 +1544,7 @@
     const token = runToken;
     runBtn.disabled = true;
     nextBtn.disabled = true;
-    initLevel(currentLevelIndex, true, { speak: false });
+    restartCurrentLevel(true, { speak: false });
     runToken = token;
     running = true;
     runBtn.disabled = true;
@@ -1421,16 +1575,31 @@
   }
 
   function completeLevel() {
-    const p = playerProgress();
+    const level = currentLevel();
     missionSparks += 20;
     missionEnergy = 100;
+    if (playingCreator) {
+      nextBtn.disabled = true;
+      missionPanel.classList.add("complete");
+      setMentor(`Dungeon tested, ${playerName()}! Byte cleared your build in ${state.steps} steps.`);
+      playTone("win");
+      announceAction("win", "Build clear!", 0);
+      popSpark("Build clear!", "win mega");
+      pulseBoard("win");
+      showSuccess();
+      updateProgress();
+      render();
+      return;
+    }
+
+    const p = playerProgress();
     p.completed[currentLevelIndex] = true;
     const best = p.bestSteps[currentLevelIndex];
     if (!best || state.steps < best) p.bestSteps[currentLevelIndex] = state.steps;
     saveProgress();
     nextBtn.disabled = currentLevelIndex >= levels.length - 1;
     missionPanel.classList.add("complete");
-    setMentor(`Mission complete, ${playerName()}! Byte used ${state.steps} steps. ${rating(state.steps, levels[currentLevelIndex].maxSteps)}`);
+    setMentor(`Mission complete, ${playerName()}! Byte used ${state.steps} steps. ${rating(state.steps, level.maxSteps)}`);
     playTone("win");
     announceAction("win", actionWords.win, 0);
     popSpark("Quest clear!", "win mega");
@@ -1441,16 +1610,19 @@
   }
 
   function showSuccess() {
-    const finalMission = currentLevelIndex >= levels.length - 1;
-    successText.textContent = finalMission
+    const level = currentLevel();
+    const finalMission = !playingCreator && currentLevelIndex >= levels.length - 1;
+    successText.textContent = playingCreator
+      ? `${playerName()} cleared a custom dungeon in ${state.steps} steps. Build another one or try a new path.`
+      : finalMission
       ? `${playerName()} finished the current quest path. Byte is ready for the next world.`
-      : `${playerName()} solved "${levels[currentLevelIndex].title}" in ${state.steps} steps.`;
+      : `${playerName()} solved "${level.title}" in ${state.steps} steps.`;
     if (successSparkText) {
       const cheer = successCheers[currentLevelIndex % successCheers.length];
       successSparkText.textContent = `${cheer} ${missionSparks} sparks earned.`;
     }
-    if (successBanner) successBanner.textContent = finalMission ? "Crown coder!" : "Quest clear!";
-    successNextBtn.textContent = finalMission ? "Stay Here" : "Next Mission";
+    if (successBanner) successBanner.textContent = playingCreator ? "Build clear!" : finalMission ? "Crown coder!" : "Quest clear!";
+    successNextBtn.textContent = playingCreator ? "Build More" : finalMission ? "Stay Here" : "Next Mission";
     successModal.classList.remove("hidden");
   }
 
@@ -1515,7 +1687,11 @@
   }
 
   function helpExplorerPlan() {
-    const solution = levels[currentLevelIndex].explorerSolution || [];
+    const solution = currentLevel().explorerSolution || [];
+    if (!solution.length) {
+      setMentor("Builder Lab dungeons do not have an answer key yet. Try a move, watch Byte, then change the plan.");
+      return;
+    }
     if (explorerCommands.length >= solution.length) {
       setMentor("Your plan has all the steps. Tap Run My Plan.");
       return;
@@ -1559,7 +1735,7 @@
   }
 
   function speechTextForLevel() {
-    const level = levels[currentLevelIndex];
+    const level = currentLevel();
     const checklist = lessonNotes[level.concept] || [];
     return `${level.speak || level.goal} ${checklist.join(" ")}`;
   }
@@ -1600,11 +1776,13 @@
   }
 
   function missionVoicePath() {
+    if (playingCreator) return "";
     return `assets/voice/mission-${String(currentLevelIndex + 1).padStart(2, "0")}.mp3`;
   }
 
   function playMissionAudio() {
     if (!audioPlayer) return Promise.reject(new Error("No audio player."));
+    if (playingCreator) return Promise.reject(new Error("Creator narration uses browser voice."));
 
     if (speechReady) window.speechSynthesis.cancel();
     audioPlayer.pause();
@@ -1839,8 +2017,106 @@
     announceAction("style", item.name, 6);
   }
 
+  function setCreatorStatus(message) {
+    if (creatorStatus) creatorStatus.textContent = message;
+  }
+
+  function renderCreatorPalette() {
+    if (!creatorPalette) return;
+    creatorPalette.querySelectorAll("[data-creator-tool]").forEach((button) => {
+      const active = button.dataset.creatorTool === creatorTool;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  function renderCreatorGrid() {
+    if (!creatorGrid) return;
+    const draft = normalizeCreatorLevel(creatorDraft);
+    creatorDraft = draft;
+    creatorGrid.style.setProperty("--creator-size", draft.size);
+    creatorGrid.innerHTML = "";
+    for (let y = 0; y < draft.size; y += 1) {
+      for (let x = 0; x < draft.size; x += 1) {
+        const kind = creatorCellKind(x, y, draft);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `creator-cell ${kind}`;
+        button.dataset.creatorX = String(x);
+        button.dataset.creatorY = String(y);
+        button.textContent = creatorIcon(kind);
+        button.setAttribute("aria-label", `${kind} tile, column ${x + 1}, row ${y + 1}`);
+        creatorGrid.appendChild(button);
+      }
+    }
+    renderCreatorPalette();
+  }
+
+  function editCreatorCell(x, y) {
+    if (!Number.isInteger(x) || !Number.isInteger(y)) return;
+    if (creatorTool === "start") {
+      creatorDraft.robot = { x, y, dir: "east" };
+      clearCreatorCell(x, y);
+      setCreatorStatus("Byte start moved. Add a gem, then Play Test.");
+    } else if (creatorTool === "floor") {
+      clearCreatorCell(x, y);
+      setCreatorStatus("Floor cleared. Keep building.");
+    } else {
+      if (creatorDraft.robot.x === x && creatorDraft.robot.y === y) {
+        setCreatorStatus("Byte needs a start square. Move Byte before placing that tile.");
+        return;
+      }
+      const type = creatorTool === "wall" ? "walls" : creatorTool === "gem" ? "gems" : "bugs";
+      const alreadyPlaced = (creatorDraft[type] || []).some((point) => point.x === x && point.y === y);
+      clearCreatorCell(x, y);
+      if (!alreadyPlaced) addCreatorPoint(type, x, y);
+      setCreatorStatus(alreadyPlaced ? "Tile cleared." : `${creatorTool === "gem" ? "Gem" : creatorTool === "bug" ? "Bug" : "Wall"} placed.`);
+    }
+    creatorDraft = normalizeCreatorLevel(creatorDraft);
+    renderCreatorGrid();
+  }
+
+  function saveCreatorDraft() {
+    const next = normalizeCreatorLevel(creatorDraft);
+    if (!next.gems.length) {
+      setCreatorStatus("Add at least one gem so Byte has a goal.");
+      return false;
+    }
+    creatorLevel = next;
+    creatorDraft = cloneCreatorLevel(next);
+    const saved = saveCreatorLevel();
+    setupLevelPicker();
+    levelSelect.value = playingCreator ? "creator" : String(currentLevelIndex);
+    renderCreatorGrid();
+    setCreatorStatus(saved ? "Dungeon saved on this device." : "Dungeon ready for this session.");
+    return true;
+  }
+
+  function playCreatorDungeon() {
+    if (!saveCreatorDraft()) return;
+    closeCreatorPanel();
+    successModal.classList.add("hidden");
+    playTone("start");
+    initCreatorLevel(false, { speak: false });
+  }
+
+  function openCreatorPanel() {
+    creatorDraft = cloneCreatorLevel(creatorLevel);
+    renderCreatorGrid();
+    closeParentPanel();
+    closeRewardPanel();
+    creatorPanel.classList.remove("hidden");
+    creatorPanel.setAttribute("aria-hidden", "false");
+  }
+
+  function closeCreatorPanel() {
+    creatorPanel.classList.add("hidden");
+    creatorPanel.setAttribute("aria-hidden", "true");
+  }
+
   function openRewardPanel() {
     renderRewards();
+    closeCreatorPanel();
     rewardPanel.classList.remove("hidden");
     rewardPanel.setAttribute("aria-hidden", "false");
   }
@@ -1854,6 +2130,7 @@
     renderParentSetup();
     renderParentStats();
     exportBox.classList.remove("visible");
+    closeCreatorPanel();
     parentPanel.classList.remove("hidden");
     parentPanel.setAttribute("aria-hidden", "false");
   }
@@ -1886,7 +2163,7 @@
   document.querySelectorAll("[data-player]").forEach((button) => {
     button.addEventListener("click", () => {
       player = button.dataset.player;
-      initLevel(currentLevelIndex, false, { speak: false });
+      restartCurrentLevel(false, { speak: false });
       if (player === "Explorer") speakMission();
     });
   });
@@ -1935,6 +2212,24 @@
     });
   }
 
+  if (creatorPalette) {
+    creatorPalette.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-creator-tool]");
+      if (!button) return;
+      creatorTool = button.dataset.creatorTool;
+      renderCreatorPalette();
+      setCreatorStatus(`${button.textContent.trim()} tool selected.`);
+    });
+  }
+
+  if (creatorGrid) {
+    creatorGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-creator-x]");
+      if (!button) return;
+      editCreatorCell(Number(button.dataset.creatorX), Number(button.dataset.creatorY));
+    });
+  }
+
   runBtn.addEventListener("click", runProgram);
   readBtn.addEventListener("click", speakMission);
   explorerRunBtn.addEventListener("click", () => {
@@ -1954,24 +2249,27 @@
     playUiVoice("help-me");
     helpExplorerPlan();
   });
-  resetBtn.addEventListener("click", () => initLevel(currentLevelIndex, true, { speak: false }));
+  resetBtn.addEventListener("click", () => restartCurrentLevel(true, { speak: false }));
   clearBtn.addEventListener("click", () => {
     codeInput.value = "";
     refreshCodePreview();
     setMentor("Code cleared. Add one command at a time and watch what Byte does.");
   });
   sampleBtn.addEventListener("click", () => {
-    codeInput.value = levels[currentLevelIndex].starter;
+    codeInput.value = currentLevel().starter;
     refreshCodePreview();
     setMentor("Starter loaded. Run it, then experiment.");
   });
   hintBtn.addEventListener("click", () => {
-    const hint = levels[currentLevelIndex].hint;
+    const hint = currentLevel().hint;
     setMentor(hint);
     if (voiceEnabled || player === "Explorer") speak(`Hint. ${hint}`);
   });
   nextBtn.addEventListener("click", () => initLevel(Math.min(currentLevelIndex + 1, levels.length - 1), false, { speak: voiceEnabled || player === "Explorer" }));
-  levelSelect.addEventListener("change", () => initLevel(Number(levelSelect.value), false, { speak: voiceEnabled || player === "Explorer" }));
+  levelSelect.addEventListener("change", () => {
+    if (levelSelect.value === "creator") initCreatorLevel(false, { speak: false });
+    else initLevel(Number(levelSelect.value), false, { speak: voiceEnabled || player === "Explorer" });
+  });
   startBtn.addEventListener("click", () => {
     playTone("start");
     welcomeModal.classList.add("hidden");
@@ -1987,10 +2285,14 @@
   }
   replayBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
-    initLevel(currentLevelIndex, false, { speak: false });
+    restartCurrentLevel(false, { speak: false });
   });
   successNextBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
+    if (playingCreator) {
+      openCreatorPanel();
+      return;
+    }
     if (currentLevelIndex < levels.length - 1) initLevel(currentLevelIndex + 1, false, { speak: voiceEnabled || player === "Explorer" });
   });
   successRewardsBtn.addEventListener("click", () => {
@@ -1998,9 +2300,29 @@
     openRewardPanel();
   });
   parentBtn.addEventListener("click", openParentPanel);
+  if (creatorBtn) creatorBtn.addEventListener("click", openCreatorPanel);
   rewardsBtn.addEventListener("click", openRewardPanel);
   closeParentBtn.addEventListener("click", closeParentPanel);
   closeRewardsBtn.addEventListener("click", closeRewardPanel);
+  if (closeCreatorBtn) closeCreatorBtn.addEventListener("click", closeCreatorPanel);
+  if (creatorSaveBtn) creatorSaveBtn.addEventListener("click", saveCreatorDraft);
+  if (creatorPlayBtn) creatorPlayBtn.addEventListener("click", playCreatorDungeon);
+  if (creatorResetBtn) creatorResetBtn.addEventListener("click", () => {
+    creatorDraft = defaultCreatorLevel();
+    renderCreatorGrid();
+    setCreatorStatus("Starter dungeon restored.");
+  });
+  if (creatorClearBtn) creatorClearBtn.addEventListener("click", () => {
+    creatorDraft = {
+      ...defaultCreatorLevel(),
+      robot: { x: 0, y: 2, dir: "east" },
+      gems: [],
+      walls: [],
+      bugs: [],
+    };
+    renderCreatorGrid();
+    setCreatorStatus("Blank dungeon ready. Add at least one gem.");
+  });
   if (saveNamesBtn) saveNamesBtn.addEventListener("click", savePlayerSetup);
   exportBtn.addEventListener("click", () => {
     exportBox.value = JSON.stringify({ exportedAt: new Date().toISOString(), progress }, null, 2);
@@ -2014,6 +2336,7 @@
       successModal.classList.add("hidden");
       closeParentPanel();
       closeRewardPanel();
+      closeCreatorPanel();
       welcomeModal.classList.add("hidden");
     }
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {

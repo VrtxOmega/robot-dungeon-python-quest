@@ -221,7 +221,7 @@ button:disabled {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(300px, 0.9fr) minmax(150px, 220px) auto minmax(180px, 260px) auto auto auto;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(130px, 180px) auto minmax(160px, 220px) auto auto auto auto;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
@@ -243,7 +243,7 @@ button:disabled {
 
 .brand h1 {
   margin: 0;
-  font-size: clamp(23px, 2vw, 28px);
+  font-size: clamp(22px, 1.8vw, 26px);
   line-height: 1;
   color: #fff7df;
   white-space: nowrap;
@@ -333,6 +333,15 @@ button:disabled {
   border-color: rgba(48, 213, 222, 0.34);
 }
 
+.create-button {
+  border-color: rgba(34, 160, 107, 0.38);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
+    linear-gradient(135deg, rgba(34, 160, 107, 0.96), rgba(48, 213, 222, 0.92));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(34, 160, 107, 0.16);
+}
+
 .sound-button.sfx-on {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent),
@@ -369,6 +378,8 @@ button:disabled {
 .topbar button,
 .topbar select {
   min-height: 36px;
+  padding-right: 11px;
+  padding-left: 11px;
 }
 
 .mission-panel, .progress-panel {
@@ -2050,6 +2061,128 @@ textarea:focus {
   margin: 18px 0;
 }
 
+.creator-card {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(48, 213, 222, 0.16), transparent 28%),
+    linear-gradient(180deg, #fff9e9, #efe3c8);
+}
+
+.creator-intro,
+.creator-status {
+  margin: 6px 0 16px;
+  color: var(--text-soft);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.creator-tools {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.creator-tools button {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 72px;
+  padding: 8px 4px;
+  border-color: rgba(104, 84, 136, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), transparent 44%),
+    rgba(255, 250, 237, 0.90);
+}
+
+.creator-tools button.active {
+  border-color: rgba(246, 200, 95, 0.68);
+  background:
+    linear-gradient(135deg, rgba(255, 244, 194, 0.96), rgba(232, 252, 255, 0.90));
+  box-shadow: var(--inner-light), 0 10px 18px rgba(132, 82, 0, 0.14), 0 0 0 4px rgba(246, 200, 95, 0.12);
+}
+
+.creator-tools span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.creator-tools strong {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.creator-grid {
+  --creator-size: 5;
+  display: grid;
+  grid-template-columns: repeat(var(--creator-size), minmax(0, 1fr));
+  gap: 8px;
+  width: min(100%, 420px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 14px;
+  padding: 12px;
+  border: 2px solid rgba(246, 200, 95, 0.32);
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 42px, rgba(255, 255, 255, 0.04) 42px 44px),
+    linear-gradient(135deg, #2e2949, #1a1832 44%, #102939);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.14), 0 18px 36px rgba(8, 6, 22, 0.20);
+}
+
+.creator-cell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-color: rgba(255, 248, 225, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 30%),
+    linear-gradient(145deg, #d9cbb1, #b99f78 62%, #927a5f);
+  color: #ffffff;
+  font-size: clamp(18px, 6vw, 34px);
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), inset 0 -10px 16px rgba(63, 42, 30, 0.18);
+}
+
+.creator-cell.start {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(48, 213, 222, 0.24), transparent 58%),
+    linear-gradient(145deg, #dffbff, #7cc7f3);
+}
+
+.creator-cell.gem {
+  background: linear-gradient(145deg, #fff1ff, #8f5cff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.44), 0 0 18px rgba(143, 92, 255, 0.24);
+}
+
+.creator-cell.wall {
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 7px, transparent 7px 14px),
+    linear-gradient(135deg, #5b5877, #302742);
+}
+
+.creator-cell.bug {
+  background: linear-gradient(145deg, #ff9aac, var(--red));
+}
+
+.creator-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.creator-actions button {
+  min-height: 46px;
+}
+
 .reward-card {
   background:
     linear-gradient(135deg, rgba(246, 200, 95, 0.18), transparent 34%),
@@ -2312,7 +2445,7 @@ textarea:focus {
   }
 
   .topbar {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 8px;
     padding: 8px;
@@ -2533,6 +2666,26 @@ textarea:focus {
     max-width: 100%;
   }
 
+  .creator-tools {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .creator-tools button {
+    min-height: 62px;
+  }
+
+  .creator-tools span {
+    width: 30px;
+    height: 30px;
+  }
+
+  .creator-grid {
+    max-width: 100%;
+    gap: 6px;
+    padding: 9px;
+  }
+
   .byte-picker {
     gap: 8px;
   }
@@ -2574,6 +2727,14 @@ textarea:focus {
 @media (max-width: 520px) {
   .button-grid, .command-bank {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .creator-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .creator-tools {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .visual-command-grid {
