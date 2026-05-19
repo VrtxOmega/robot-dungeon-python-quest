@@ -33,7 +33,7 @@ const ids = [
   "lessonList", "welcomeModal", "successModal", "successText", "parentPanel",
   "parentStats", "exportBox", "missionNumber", "explorerBuilder", "explorerClearBtn",
   "explorerRunBtn", "explorerHelpBtn", "explorerPlan", "rewardsBtn", "closeRewardsBtn",
-  "rewardPanel", "rewardGrid", "rewardName", "rewardIntro",
+  "rewardPanel", "rewardGrid", "rewardName", "rewardIntro", "workshopGrid", "workshopPreview", "workshopSummary",
   "worldMap", "mapSummary",
   "profileCard", "profileAvatar", "profileMode", "profileName", "profileLine",
   "builderNameInput", "explorerNameInput", "saveNamesBtn",

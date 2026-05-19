@@ -57,6 +57,7 @@ Parent setup lets a grown-up rename the two profiles. Names stay in the browser 
 - Big Byte companion reactions, action banners, movement trails, particle bursts, and layered arcade SFX
 - Mission narration and command voice clips
 - Per-profile reward badges
+- Byte Workshop with per-profile unlockable robot cosmetics
 - Parent progress drawer with local export and reset controls
 - Mobile-friendly layout with no required app install
 

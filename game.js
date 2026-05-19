@@ -271,6 +271,9 @@
   const rewardGrid = document.getElementById("rewardGrid");
   const rewardName = document.getElementById("rewardName");
   const rewardIntro = document.getElementById("rewardIntro");
+  const workshopGrid = document.getElementById("workshopGrid");
+  const workshopPreview = document.getElementById("workshopPreview");
+  const workshopSummary = document.getElementById("workshopSummary");
   const profileCard = document.getElementById("profileCard");
   const profileAvatar = document.getElementById("profileAvatar");
   const profileMode = document.getElementById("profileMode");
@@ -323,6 +326,30 @@
     win: "Quest clear!",
     style: "New Byte!",
   };
+
+  const starterCosmetics = {
+    hat: "none",
+    visor: "clear",
+    trail: "cyan",
+    aura: "soft",
+  };
+
+  const cosmeticItems = [
+    { id: "hat-none", slot: "hat", value: "none", icon: "•", name: "No Hat", detail: "Classic Byte head.", unlockIndex: null },
+    { id: "visor-clear", slot: "visor", value: "clear", icon: "□", name: "Clear Face", detail: "Byte's original look.", unlockIndex: null },
+    { id: "trail-cyan", slot: "trail", value: "cyan", icon: "↑", name: "Cyan Trail", detail: "Soft blue robot trail.", unlockIndex: null },
+    { id: "aura-soft", slot: "aura", value: "soft", icon: "○", name: "Soft Aura", detail: "A gentle starter glow.", unlockIndex: null },
+    { id: "trail-gold", slot: "trail", value: "gold", icon: "✦", name: "Gold Trail", detail: "Earned from the first gem.", unlockIndex: 0 },
+    { id: "visor-star", slot: "visor", value: "star", icon: "★", name: "Star Visor", detail: "A bright focus lens.", unlockIndex: 1 },
+    { id: "hat-bolt", slot: "hat", value: "bolt", icon: "⚡", name: "Bolt Hat", detail: "Loop-powered headgear.", unlockIndex: 2 },
+    { id: "aura-gem", slot: "aura", value: "gem", icon: "◆", name: "Gem Aura", detail: "A purple treasure glow.", unlockIndex: 3 },
+    { id: "trail-purple", slot: "trail", value: "purple", icon: "◆", name: "Purple Trail", detail: "A magical coding trail.", unlockIndex: 4 },
+    { id: "visor-blue", slot: "visor", value: "blue", icon: "▰", name: "Blue Visor", detail: "Bug-spotting goggles.", unlockIndex: 5 },
+    { id: "hat-antenna", slot: "hat", value: "antenna", icon: "◎", name: "Signal Antenna", detail: "A powered-up scanner.", unlockIndex: 6 },
+    { id: "aura-portal", slot: "aura", value: "portal", icon: "◎", name: "Portal Aura", detail: "A swirly teleport glow.", unlockIndex: 7 },
+    { id: "trail-rainbow", slot: "trail", value: "rainbow", icon: "≋", name: "Rainbow Trail", detail: "A full square-dance trail.", unlockIndex: 8 },
+    { id: "hat-crown", slot: "hat", value: "crown", icon: "♛", name: "Tiny Crown", detail: "For a crown coder.", unlockIndex: 11 },
+  ];
 
   const lessonNotes = {
     Sequence: ["Go one line at a time.", "When Byte lands on a gem, collect it."],
@@ -487,8 +514,50 @@
   }
 
   function playerProgress() {
-    if (!progress[player]) progress[player] = { completed: {}, bestSteps: {} };
+    if (!progress[player] || typeof progress[player] !== "object") progress[player] = {};
+    if (!progress[player].completed || typeof progress[player].completed !== "object") progress[player].completed = {};
+    if (!progress[player].bestSteps || typeof progress[player].bestSteps !== "object") progress[player].bestSteps = {};
+    progress[player].cosmetics = normalizeCosmetics(progress[player].cosmetics);
     return progress[player];
+  }
+
+  function normalizeCosmetics(value) {
+    const saved = value && typeof value === "object" ? value : {};
+    return Object.keys(starterCosmetics).reduce((cosmetics, slot) => {
+      cosmetics[slot] = cosmeticItems.some((item) => item.slot === slot && item.value === saved[slot])
+        ? saved[slot]
+        : starterCosmetics[slot];
+      return cosmetics;
+    }, {});
+  }
+
+  function cosmeticUnlocked(item, record = playerProgress()) {
+    return item.unlockIndex === null || Boolean(record.completed[item.unlockIndex]);
+  }
+
+  function currentCosmetics() {
+    const record = playerProgress();
+    const cosmetics = normalizeCosmetics(record.cosmetics);
+    Object.entries(cosmetics).forEach(([slot, value]) => {
+      const item = cosmeticItem(slot, value);
+      if (!item || !cosmeticUnlocked(item, record)) cosmetics[slot] = starterCosmetics[slot];
+    });
+    record.cosmetics = cosmetics;
+    return cosmetics;
+  }
+
+  function cosmeticItem(slot, value) {
+    return cosmeticItems.find((item) => item.slot === slot && item.value === value);
+  }
+
+  function cosmeticClasses(cosmetics = currentCosmetics()) {
+    return Object.entries(cosmetics).map(([slot, value]) => `cosmetic-${slot}-${value}`);
+  }
+
+  function applyCosmetics() {
+    const allClasses = cosmeticItems.map((item) => `cosmetic-${item.slot}-${item.value}`);
+    document.body.classList.remove(...allClasses);
+    document.body.classList.add(...cosmeticClasses());
   }
 
   function totalTreasure(level = levels[currentLevelIndex]) {
@@ -566,6 +635,7 @@
     document.body.classList.toggle("theme-builder", player === "Builder");
     document.body.classList.toggle("theme-explorer", player === "Explorer");
     syncPreviewButton();
+    applyCosmetics();
     renderPlayerSwitch();
     profileAvatar.textContent = displayName.charAt(0).toUpperCase() || profile.avatar;
     profileMode.textContent = profile.mode;
@@ -618,6 +688,7 @@
       syncExplorerCode();
     }
     renderExplorerPlan();
+    applyCosmetics();
     setByteMood("Ready for launch.", "ready");
     setMentor(`Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
     render();
@@ -837,9 +908,30 @@
     return new Set((sim.path || []).slice(Math.max(0, expandVisualCommands(explorerCommands).filter((command) => command === "move()").length - 1)));
   }
 
+  function addRobotPart(cell, className, text) {
+    const part = document.createElement("span");
+    part.className = `robot-part ${className}`;
+    part.textContent = text;
+    part.setAttribute("aria-hidden", "true");
+    cell.appendChild(part);
+  }
+
+  function renderRobotParts(cell, cosmetics = currentCosmetics()) {
+    if (cosmetics.aura !== "soft") cell.classList.add(`aura-${cosmetics.aura}`);
+    if (cosmetics.hat !== "none") {
+      const item = cosmeticItem("hat", cosmetics.hat);
+      addRobotPart(cell, `hat-${cosmetics.hat}`, item ? item.icon : "✦");
+    }
+    if (cosmetics.visor !== "clear") {
+      const item = cosmeticItem("visor", cosmetics.visor);
+      addRobotPart(cell, `visor-${cosmetics.visor}`, item ? item.icon : "★");
+    }
+  }
+
   function render() {
     const level = levels[currentLevelIndex];
     const view = displayState();
+    const cosmetics = currentCosmetics();
     board.style.setProperty("--cols", level.size);
     board.innerHTML = "";
     board.style.setProperty("--robot-rotation", `${ROTATION[view.dir]}deg`);
@@ -860,7 +952,10 @@
         if (portalAt(x, y)) cell.classList.add("portal");
         if (trails.has(`${x},${y}`)) cell.classList.add("step-trail");
         if (ghosts.has(`${x},${y}`)) cell.classList.add("ghost-path");
-        if (view.robot.x === x && view.robot.y === y) cell.classList.add("robot");
+        if (view.robot.x === x && view.robot.y === y) {
+          cell.classList.add("robot");
+          renderRobotParts(cell, cosmetics);
+        }
         board.appendChild(cell);
       }
     }
@@ -1675,6 +1770,73 @@
         </div>
       `;
     }).join("");
+    renderWorkshop(record);
+  }
+
+  function renderWorkshop(record = playerProgress()) {
+    if (!workshopGrid || !workshopPreview || !workshopSummary) return;
+    const cosmetics = currentCosmetics();
+    const unlockedItems = cosmeticItems.filter((item) => item.unlockIndex !== null && cosmeticUnlocked(item, record)).length;
+    const earnedTotal = cosmeticItems.filter((item) => item.unlockIndex !== null).length;
+    const equipped = Object.entries(cosmetics)
+      .map(([slot, value]) => cosmeticItem(slot, value))
+      .filter(Boolean)
+      .map((item) => item.name)
+      .join(", ");
+
+    workshopPreview.innerHTML = `
+      <div class="workshop-byte ${cosmeticClasses(cosmetics).join(" ")}">
+        ${robotPartMarkup(cosmetics)}
+      </div>
+    `;
+    workshopSummary.textContent = `${unlockedItems} of ${earnedTotal} robot parts earned. Equipped: ${equipped}.`;
+    workshopGrid.innerHTML = cosmeticItems.map((item) => {
+      const unlocked = cosmeticUnlocked(item, record);
+      const equippedItem = cosmetics[item.slot] === item.value;
+      const unlockText = item.unlockIndex === null ? "Starter part" : `Finish quest ${item.unlockIndex + 1}`;
+      return `
+        <button class="workshop-item ${unlocked ? "unlocked" : "locked"} ${equippedItem ? "equipped" : ""}" data-cosmetic-id="${item.id}" type="button" ${unlocked ? "" : "disabled"} aria-pressed="${equippedItem}">
+          <span class="workshop-icon">${item.icon}</span>
+          <span>
+            <strong>${item.name}</strong>
+            <small>${unlocked ? item.detail : unlockText}</small>
+          </span>
+          <em>${equippedItem ? "Equipped" : unlocked ? "Equip" : "Locked"}</em>
+        </button>
+      `;
+    }).join("");
+  }
+
+  function robotPartMarkup(cosmetics = currentCosmetics()) {
+    const parts = [];
+    if (cosmetics.hat !== "none") {
+      const item = cosmeticItem("hat", cosmetics.hat);
+      parts.push(`<span class="robot-part hat-${cosmetics.hat}" aria-hidden="true">${item ? item.icon : "✦"}</span>`);
+    }
+    if (cosmetics.visor !== "clear") {
+      const item = cosmeticItem("visor", cosmetics.visor);
+      parts.push(`<span class="robot-part visor-${cosmetics.visor}" aria-hidden="true">${item ? item.icon : "★"}</span>`);
+    }
+    return parts.join("");
+  }
+
+  function equipCosmetic(id) {
+    const item = cosmeticItems.find((cosmetic) => cosmetic.id === id);
+    if (!item) return;
+    const record = playerProgress();
+    if (!cosmeticUnlocked(item, record)) {
+      setMentor(`${item.name} is still locked. Finish more quests to open it.`);
+      return;
+    }
+    record.cosmetics = currentCosmetics();
+    record.cosmetics[item.slot] = item.value;
+    saveProgress();
+    applyCosmetics();
+    render();
+    renderRewards();
+    setMentor(`${item.name} equipped for ${playerName()}.`);
+    playTone("style");
+    announceAction("style", item.name, 6);
   }
 
   function openRewardPanel() {
@@ -1713,7 +1875,7 @@
       return;
     }
 
-    progress[player] = { completed: {}, bestSteps: {} };
+    progress[player] = { completed: {}, bestSteps: {}, cosmetics: { ...starterCosmetics } };
     saveProgress();
     resetProgressBtn.dataset.confirm = "";
     resetProgressBtn.textContent = "Reset Current Player";
@@ -1764,6 +1926,14 @@
     if (!button || button.disabled) return;
     initLevel(Number(button.dataset.mapLevel), false, { speak: voiceEnabled || player === "Explorer" });
   });
+
+  if (workshopGrid) {
+    workshopGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-cosmetic-id]");
+      if (!button || button.disabled) return;
+      equipCosmetic(button.dataset.cosmeticId);
+    });
+  }
 
   runBtn.addEventListener("click", runProgram);
   readBtn.addEventListener("click", speakMission);
