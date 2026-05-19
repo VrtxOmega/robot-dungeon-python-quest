@@ -786,7 +786,7 @@
     const active = player === "Builder" && codePreviewEnabled;
     previewBtn.classList.toggle("active", active);
     previewBtn.setAttribute("aria-pressed", String(active));
-    previewBtn.textContent = active ? "Preview On" : "Preview";
+    previewBtn.textContent = active ? "Previewing" : "Preview";
     document.body.classList.toggle("code-preview-on", active);
   }
 
@@ -835,7 +835,7 @@
     nextBtn.disabled = true;
     if (!keepCode) {
       explorerCommands = [];
-      codeInput.value = player === "Explorer" ? "" : level.starter;
+      codeInput.value = "";
     } else if (player === "Explorer") {
       syncExplorerCode();
     }
@@ -844,7 +844,9 @@
     setByteMood("Ready for launch.", "ready");
     setMentor(playingCreator
       ? `${playerName()}'s dungeon is live. Run code to test the path, or press Create to edit it.`
-      : `Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
+      : player === "Builder"
+        ? `Hi ${playerName()}. Write one command per line. Press Starter only if you want an example, then Preview before Run.`
+        : `Hi ${playerName()}. I can read the mission out loud. Press Read to me, then help Byte.`);
     render();
     updateProgress();
     applyProfile();
@@ -1028,6 +1030,45 @@
     const sim = createSimulation(level);
     const result = applyParsedSimulationCommands(sim, commands, level);
     return result ? { ...sim, ...result } : { ...sim, ok: true };
+  }
+
+  function describeCodePreview(options = {}) {
+    if (player !== "Builder" || !codePreviewEnabled) return;
+    const source = codeInput.value.trim();
+    if (!source) {
+      if (options.fromClick) {
+        setMentor("Write a few commands first, or press Starter if you want an example.");
+      }
+      return;
+    }
+
+    let preview;
+    try {
+      preview = simulateCodePreview(codeInput.value);
+    } catch (error) {
+      setMentor("Preview is waiting for complete code. Finish the line, then try again.");
+      return;
+    }
+
+    if (!preview) {
+      setMentor("Preview needs a short set of real commands before Byte can show it.");
+      return;
+    }
+
+    if (preview.ok === false) {
+      setMentor(preview.reason || "Preview found a bump. Try a turn or a different command first.");
+      return;
+    }
+
+    const gemsLeft = preview.gems ? preview.gems.size : 0;
+    const stepWord = preview.steps === 1 ? "step" : "steps";
+    if (gemsLeft === 0) {
+      setMentor(`Preview reaches every gem in ${preview.steps} ${stepWord}. Press Run to make it count.`);
+      return;
+    }
+
+    const gemWord = gemsLeft === 1 ? "gem" : "gems";
+    setMentor(`Preview shows ${preview.steps} ${stepWord}. Byte still sees ${gemsLeft} ${gemWord}.`);
   }
 
   function displayState() {
@@ -1887,11 +1928,14 @@
     codeInput.value = next;
     codeInput.focus();
     codeInput.selectionStart = codeInput.selectionEnd = before.length + prefix.length + text.length;
-    if (codePreviewEnabled && player === "Builder") render();
+    refreshCodePreview();
   }
 
   function refreshCodePreview() {
-    if (codePreviewEnabled && player === "Builder") render();
+    if (codePreviewEnabled && player === "Builder") {
+      render();
+      describeCodePreview();
+    }
   }
 
   function renderParentStats() {
@@ -2186,12 +2230,23 @@
   codeInput.addEventListener("input", refreshCodePreview);
 
   previewBtn.addEventListener("click", () => {
+    if (player !== "Builder") return;
+    if (!codeInput.value.trim()) {
+      codePreviewEnabled = false;
+      syncPreviewButton();
+      render();
+      setMentor("Write a few commands first, or press Starter if you want an example.");
+      return;
+    }
+
     codePreviewEnabled = !codePreviewEnabled;
     syncPreviewButton();
     render();
-    setMentor(codePreviewEnabled
-      ? "Preview is on. Byte shows what valid code will do before you press Run."
-      : "Preview is off. Press Run when you want Byte to try the mission.");
+    if (codePreviewEnabled) {
+      describeCodePreview({ fromClick: true });
+    } else {
+      setMentor("Preview is off. Press Run when you want Byte to try the mission.");
+    }
   });
 
   document.querySelectorAll("[data-visual-command]").forEach((button) => {
@@ -2252,13 +2307,18 @@
   resetBtn.addEventListener("click", () => restartCurrentLevel(true, { speak: false }));
   clearBtn.addEventListener("click", () => {
     codeInput.value = "";
-    refreshCodePreview();
+    codePreviewEnabled = false;
+    syncPreviewButton();
+    render();
     setMentor("Code cleared. Add one command at a time and watch what Byte does.");
   });
   sampleBtn.addEventListener("click", () => {
     codeInput.value = currentLevel().starter;
+    codeInput.focus();
     refreshCodePreview();
-    setMentor("Starter loaded. Run it, then experiment.");
+    if (!codePreviewEnabled) {
+      setMentor("Starter loaded as an example. Press Preview to watch it, then change it.");
+    }
   });
   hintBtn.addEventListener("click", () => {
     const hint = currentLevel().hint;

@@ -38,7 +38,7 @@ GitHub Pages is deployed from `main` using the `Deploy GitHub Pages` workflow.
 
 | Mode | Designed for | Experience |
 | --- | --- | --- |
-| Builder Mode / Code Mode | Readers and early coders | Real Python-style starter code, editable command bank, optional live code preview. |
+| Builder Mode / Code Mode | Readers and early coders | Blank Python-style editor, opt-in Starter examples, editable command bank, optional live code preview. |
 | Explorer Mode / Easy Mode | Younger players and pre-readers | Big tap-friendly command cards, visual movement preview, command voice reinforcement. |
 
 Parent setup lets a grown-up rename the two profiles. Names stay in the browser only and are not part of the source code or exported progress.
