@@ -11,6 +11,7 @@
   const DEFAULT_PROFILE_NAMES = { Builder: "Builder", Explorer: "Explorer" };
   const STORAGE_KEY = "robotDungeonPythonQuest.progress.v2";
   const SETTINGS_KEY = "robotDungeonPythonQuest.profileSettings.v1";
+  const BYTE_STYLE_KEY = "robotDungeonPythonQuest.byteStyle.v1";
 
   const levels = [
     {
@@ -200,6 +201,9 @@
   const commandAudioPlayer = typeof Audio !== "undefined" ? new Audio() : null;
   let progress = loadProgress();
   let profileNames = loadProfileNames();
+  let byteStyle = loadByteStyle();
+  let missionSparks = 0;
+  let audioContext = null;
 
   const board = document.getElementById("board");
   const codeInput = document.getElementById("codeInput");
@@ -235,6 +239,10 @@
   const missionNumber = document.getElementById("missionNumber");
   const facingLabel = document.getElementById("facingLabel");
   const stepLabel = document.getElementById("stepLabel");
+  const treasureText = document.getElementById("treasureText");
+  const sparkCount = document.getElementById("sparkCount");
+  const byteMood = document.getElementById("byteMood");
+  const fxLayer = document.getElementById("fxLayer");
   const stars = document.getElementById("stars");
   const progressName = document.getElementById("progressName");
   const progressText = document.getElementById("progressText");
@@ -245,6 +253,7 @@
   const welcomeModal = document.getElementById("welcomeModal");
   const successModal = document.getElementById("successModal");
   const successText = document.getElementById("successText");
+  const successSparkText = document.getElementById("successSparkText");
   const parentPanel = document.getElementById("parentPanel");
   const parentStats = document.getElementById("parentStats");
   const exportBox = document.getElementById("exportBox");
@@ -275,6 +284,21 @@
       className: "theme-explorer",
     },
   };
+
+  const byteStyles = {
+    sky: { label: "Sky Byte", className: "byte-sky", tone: 520 },
+    gem: { label: "Gem Byte", className: "byte-gem", tone: 620 },
+    gold: { label: "Gold Byte", className: "byte-gold", tone: 700 },
+  };
+
+  const successCheers = [
+    "Gem grab!",
+    "Code spark!",
+    "Byte boost!",
+    "Tiny spell, big win!",
+    "Quest clear!",
+    "Nice robot brain!",
+  ];
 
   const lessonNotes = {
     Sequence: ["Go one line at a time.", "When Byte lands on a gem, collect it."],
@@ -343,6 +367,34 @@
     return { ...DEFAULT_PROFILE_NAMES };
   }
 
+  function loadByteStyle() {
+    try {
+      const saved = localStorage.getItem(BYTE_STYLE_KEY);
+      return byteStyles[saved] ? saved : "sky";
+    } catch (error) {
+      return "sky";
+    }
+  }
+
+  function saveByteStyle() {
+    try {
+      localStorage.setItem(BYTE_STYLE_KEY, byteStyle);
+    } catch (error) {
+      // Byte style is cosmetic. Ignore storage failures so play can continue.
+    }
+  }
+
+  function applyByteStyle() {
+    Object.values(byteStyles).forEach((style) => document.body.classList.remove(style.className));
+    const style = byteStyles[byteStyle] || byteStyles.sky;
+    document.body.classList.add(style.className);
+    document.querySelectorAll("[data-byte-style]").forEach((button) => {
+      const active = button.dataset.byteStyle === byteStyle;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
   function saveProfileNames() {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(profileNames));
@@ -391,6 +443,21 @@
     return progress[player];
   }
 
+  function totalTreasure(level = levels[currentLevelIndex]) {
+    return (level.gems || []).length + (level.batteries || []).length;
+  }
+
+  function updateQuestHud() {
+    if (!state) return;
+    const total = totalTreasure();
+    const found = Math.max(0, total - state.gems.size - state.batteries.size);
+    if (treasureText) treasureText.textContent = `${found}/${total}`;
+    if (sparkCount) sparkCount.textContent = String(missionSparks);
+    if (byteMood) {
+      byteMood.textContent = state.won ? "Happy" : running ? "Zooming" : found > 0 ? "Glowing" : "Ready";
+    }
+  }
+
   function renderPlayerSwitch() {
     document.querySelectorAll("[data-player]").forEach((button) => {
       const id = button.dataset.player;
@@ -437,6 +504,7 @@
     running = false;
     runBtn.disabled = false;
     if (options.resetPreview !== false) codePreviewEnabled = false;
+    missionSparks = 0;
     currentLevelIndex = Math.max(0, Math.min(levels.length - 1, index));
     const level = levels[currentLevelIndex];
     state = {
@@ -710,6 +778,7 @@
 
     const best = playerProgress().bestSteps[currentLevelIndex];
     stars.textContent = best ? rating(best, level.maxSteps) : "☆ ☆ ☆";
+    updateQuestHud();
   }
 
   function rating(steps, maxSteps) {
@@ -836,6 +905,7 @@
       const index = DIRECTIONS.indexOf(state.dir);
       state.dir = DIRECTIONS[(index + 3) % 4];
       state.steps += 1;
+      playTone("turn");
       return;
     }
 
@@ -843,34 +913,114 @@
       const index = DIRECTIONS.indexOf(state.dir);
       state.dir = DIRECTIONS[(index + 1) % 4];
       state.steps += 1;
+      playTone("turn");
       return;
     }
 
     if (command.type === "collect") {
       const pos = key(state.robot);
-      if (state.gems.has(pos)) state.gems.delete(pos);
+      let collected = false;
+      if (state.gems.has(pos)) {
+        state.gems.delete(pos);
+        collected = true;
+      }
       if (state.batteries.has(pos)) {
         state.batteries.delete(pos);
         state.inventory.battery += 1;
+        collected = true;
       }
       state.steps += 1;
+      if (collected) {
+        missionSparks += 10;
+        playTone("collect");
+        popSpark("+10 sparks", "collect");
+        pulseBoard("collect");
+      }
       return;
     }
 
     if (command.type === "move") {
-      if (wallAhead()) throw new Error("Bonk. Byte bumped a wall. Try a turn before that move.");
+      if (wallAhead()) {
+        playTone("bump");
+        pulseBoard("bump");
+        throw new Error("Bonk. Byte bumped a wall. Try a turn before that move.");
+      }
       const delta = DELTAS[state.dir];
       const next = { x: state.robot.x + delta.x, y: state.robot.y + delta.y };
-      if (tileAt(next.x, next.y, "bugs")) throw new Error("Byte touched a bug tile. Find a path around it.");
+      if (tileAt(next.x, next.y, "bugs")) {
+        playTone("bump");
+        pulseBoard("bump");
+        throw new Error("Byte touched a bug tile. Find a path around it.");
+      }
       state.robot = next;
       const portal = portalAt(next.x, next.y);
-      if (portal) state.robot = clonePoint(portal.to);
+      if (portal) {
+        state.robot = clonePoint(portal.to);
+        popSpark("Portal pop!", "portal");
+      }
       state.steps += 1;
+      playTone("move");
     }
   }
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function soundContext() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!audioContext) audioContext = new AudioCtx();
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+    return audioContext;
+  }
+
+  function playTone(type) {
+    try {
+      const context = soundContext();
+      if (!context) return;
+      const style = byteStyles[byteStyle] || byteStyles.sky;
+      const tones = {
+        move: [style.tone * 0.78, 0.055, 0.035],
+        turn: [style.tone * 0.58, 0.045, 0.025],
+        collect: [style.tone * 1.18, 0.12, 0.060],
+        win: [style.tone * 1.38, 0.20, 0.075],
+        bump: [170, 0.16, 0.050],
+        start: [style.tone, 0.10, 0.040],
+      };
+      const [frequency, duration, volume] = tones[type] || tones.move;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = type === "bump" ? "sawtooth" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency, context.currentTime);
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(volume, context.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + duration + 0.02);
+    } catch (error) {
+      // Sound is a bonus layer. Browsers can block it without affecting gameplay.
+    }
+  }
+
+  function popSpark(text, kind = "spark") {
+    if (!fxLayer) return;
+    const burst = document.createElement("span");
+    burst.className = `spark-pop ${kind}`;
+    burst.textContent = text;
+    burst.style.left = `${32 + Math.random() * 36}%`;
+    burst.style.top = `${24 + Math.random() * 34}%`;
+    fxLayer.appendChild(burst);
+    setTimeout(() => burst.remove(), 900);
+  }
+
+  function pulseBoard(kind) {
+    if (!board) return;
+    board.classList.remove("pulse-collect", "pulse-win", "pulse-bump");
+    board.offsetWidth;
+    board.classList.add(`pulse-${kind}`);
+    setTimeout(() => board.classList.remove(`pulse-${kind}`), 520);
   }
 
   async function runProgram() {
@@ -910,6 +1060,7 @@
 
   function completeLevel() {
     const p = playerProgress();
+    missionSparks += 20;
     p.completed[currentLevelIndex] = true;
     const best = p.bestSteps[currentLevelIndex];
     if (!best || state.steps < best) p.bestSteps[currentLevelIndex] = state.steps;
@@ -917,6 +1068,9 @@
     nextBtn.disabled = currentLevelIndex >= levels.length - 1;
     missionPanel.classList.add("complete");
     setMentor(`Mission complete, ${playerName()}! Byte used ${state.steps} steps. ${rating(state.steps, levels[currentLevelIndex].maxSteps)}`);
+    playTone("win");
+    popSpark("Quest clear!", "win");
+    pulseBoard("win");
     showSuccess();
     updateProgress();
     render();
@@ -927,6 +1081,10 @@
     successText.textContent = finalMission
       ? `${playerName()} finished the current quest path. Byte is ready for the next world.`
       : `${playerName()} solved "${levels[currentLevelIndex].title}" in ${state.steps} steps.`;
+    if (successSparkText) {
+      const cheer = successCheers[currentLevelIndex % successCheers.length];
+      successSparkText.textContent = `${cheer} ${missionSparks} sparks earned.`;
+    }
     successNextBtn.textContent = finalMission ? "Stay Here" : "Next Mission";
     successModal.classList.remove("hidden");
   }
@@ -1305,6 +1463,17 @@
     button.addEventListener("click", () => insertCommand(button.dataset.command));
   });
 
+  document.querySelectorAll("[data-byte-style]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!byteStyles[button.dataset.byteStyle]) return;
+      byteStyle = button.dataset.byteStyle;
+      saveByteStyle();
+      applyByteStyle();
+      playTone("start");
+      popSpark(byteStyles[byteStyle].label, "style");
+    });
+  });
+
   codeInput.addEventListener("input", refreshCodePreview);
 
   previewBtn.addEventListener("click", () => {
@@ -1364,6 +1533,7 @@
   nextBtn.addEventListener("click", () => initLevel(Math.min(currentLevelIndex + 1, levels.length - 1), false, { speak: voiceEnabled || player === "Explorer" }));
   levelSelect.addEventListener("change", () => initLevel(Number(levelSelect.value), false, { speak: voiceEnabled || player === "Explorer" }));
   startBtn.addEventListener("click", () => {
+    playTone("start");
     welcomeModal.classList.add("hidden");
     if (player === "Explorer") speakMission();
   });
@@ -1406,6 +1576,7 @@
 
   window.RobotDungeon = { levels, parseProgram, countCommands };
 
+  applyByteStyle();
   setupLevelPicker();
   initLevel(0, false, { speak: false });
 })();

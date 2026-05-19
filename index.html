@@ -81,7 +81,22 @@
             <strong id="stepLabel">0</strong>
           </div>
         </div>
+        <div class="quest-hud" aria-live="polite">
+          <div>
+            <span class="tiny-label">Treasure</span>
+            <strong id="treasureText">0/1</strong>
+          </div>
+          <div>
+            <span class="tiny-label">Sparks</span>
+            <strong id="sparkCount">0</strong>
+          </div>
+          <div>
+            <span class="tiny-label">Byte Mood</span>
+            <strong id="byteMood">Ready</strong>
+          </div>
+        </div>
         <div id="board" class="board" aria-label="Robot dungeon grid"></div>
+        <div id="fxLayer" class="fx-layer" aria-hidden="true"></div>
       </div>
 
       <aside class="code-panel">
@@ -157,8 +172,22 @@
   <div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="modal-card">
       <span class="badge">Built for young coders</span>
-      <h2 id="welcomeTitle">Welcome to Robot Dungeon</h2>
-      <p>Help Byte collect shiny gems. Nova can read each mission out loud, and younger players can guide Byte by tapping big command buttons.</p>
+      <h2 id="welcomeTitle">Choose Byte. Grab gems. Learn code.</h2>
+      <p>Pick a robot style, then jump into the first quest. Byte lights up when gems, batteries, and clever plans click.</p>
+      <div id="bytePicker" class="byte-picker" role="group" aria-label="Choose Byte style">
+        <button data-byte-style="sky" type="button">
+          <span class="byte-swatch sky-byte" aria-hidden="true"></span>
+          <strong>Sky Byte</strong>
+        </button>
+        <button data-byte-style="gem" type="button">
+          <span class="byte-swatch gem-byte" aria-hidden="true"></span>
+          <strong>Gem Byte</strong>
+        </button>
+        <button data-byte-style="gold" type="button">
+          <span class="byte-swatch gold-byte" aria-hidden="true"></span>
+          <strong>Gold Byte</strong>
+        </button>
+      </div>
       <button id="startBtn" class="primary" type="button">Start Mission</button>
     </div>
   </div>
@@ -171,6 +200,7 @@
       <span class="badge">Mission Complete</span>
       <h2 id="successTitle">Byte did it!</h2>
       <p id="successText">Great coding.</p>
+      <p id="successSparkText" class="success-sparks">Sparks earned.</p>
       <div class="success-actions">
         <button id="replayBtn" type="button">Replay</button>
         <button id="successRewardsBtn" type="button">Rewards</button>

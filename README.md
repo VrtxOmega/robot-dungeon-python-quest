@@ -52,6 +52,9 @@ Parent setup lets a grown-up rename the two profiles. Names stay in the browser 
 - Conditionals with `if wall_ahead():` and `if gem_here():`
 - Explorer Mode visual command preview
 - Builder Mode optional live code preview
+- Choose-your-Byte style picker on first launch
+- Quest HUD for treasure, sparks, and Byte mood
+- Spark popups and lightweight arcade sound feedback
 - Mission narration and command voice clips
 - Per-profile reward badges
 - Parent progress drawer with local export and reset controls

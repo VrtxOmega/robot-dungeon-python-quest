@@ -26,6 +26,7 @@ const ids = [
   "board", "codeInput", "levelSelect", "runBtn", "resetBtn", "hintBtn",
   "nextBtn", "readBtn", "sampleBtn", "mentorText", "levelTitle", "levelGoal",
   "conceptLabel", "facingLabel", "stepLabel", "stars", "progressName",
+  "treasureText", "sparkCount", "byteMood", "fxLayer",
   "progressText", "progressFill", "clearBtn", "parentBtn", "closeParentBtn",
   "exportBtn", "resetProgressBtn", "startBtn", "replayBtn", "successRewardsBtn", "successNextBtn",
   "lessonList", "welcomeModal", "successModal", "successText", "parentPanel",
@@ -35,6 +36,7 @@ const ids = [
   "worldMap", "mapSummary",
   "profileCard", "profileAvatar", "profileMode", "profileName", "profileLine",
   "builderNameInput", "explorerNameInput", "saveNamesBtn",
+  "successSparkText", "bytePicker",
 ];
 
 ids.forEach((id) => elements.set(id, makeElement()));
