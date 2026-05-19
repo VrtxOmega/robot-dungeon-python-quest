@@ -190,7 +190,7 @@ button:disabled {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(270px, 1fr) minmax(240px, 320px) auto minmax(230px, 280px) auto auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 300px) auto minmax(200px, 260px) auto auto auto;
   gap: 12px;
   align-items: center;
   margin-bottom: 12px;
@@ -291,6 +291,23 @@ button:disabled {
   align-self: end;
   border-color: rgba(246, 200, 95, 0.26);
   background: rgba(255, 247, 221, 0.94);
+}
+
+.sound-button {
+  border-color: rgba(48, 213, 222, 0.34);
+}
+
+.sound-button.sfx-on {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent),
+    linear-gradient(135deg, rgba(48, 213, 222, 0.96), rgba(143, 92, 255, 0.92));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(48, 213, 222, 0.18);
+}
+
+.sound-button.sfx-off {
+  color: #5d536c;
+  background: rgba(237, 232, 220, 0.82);
 }
 
 .level-picker {
@@ -955,6 +972,18 @@ button:disabled {
   animation: boardCollect 0.42s ease-out;
 }
 
+.board.pulse-move {
+  animation: boardMove 0.24s ease-out;
+}
+
+.board.pulse-turn {
+  animation: boardTurn 0.24s ease-out;
+}
+
+.board.pulse-portal {
+  animation: boardPortal 0.52s ease-out;
+}
+
 .board.pulse-win {
   animation: boardWin 0.54s ease-out;
 }
@@ -1032,6 +1061,83 @@ button:disabled {
     linear-gradient(180deg, rgba(255, 255, 255, 0.88), transparent 46%),
     linear-gradient(135deg, #ffe1e7, #ef5f7f);
   color: #5a0c20;
+}
+
+.fx-particle,
+.fx-ring {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  pointer-events: none;
+}
+
+.fx-particle {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--gold);
+  box-shadow: 0 0 18px rgba(246, 200, 95, 0.62);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  animation: particlePop 0.72s ease-out var(--delay, 0s) forwards;
+}
+
+.fx-particle.move,
+.fx-particle.launch {
+  background: var(--cyan);
+  box-shadow: 0 0 18px rgba(48, 213, 222, 0.58);
+}
+
+.fx-particle.turn_left,
+.fx-particle.turn_right,
+.fx-particle.repeat,
+.fx-particle.sensor,
+.fx-particle.portal,
+.fx-particle.style {
+  background: var(--purple);
+  box-shadow: 0 0 18px rgba(143, 92, 255, 0.56);
+}
+
+.fx-particle.collect,
+.fx-particle.win {
+  background: var(--gold);
+  box-shadow: 0 0 20px rgba(246, 200, 95, 0.74);
+}
+
+.fx-particle.bump {
+  width: 16px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rose);
+  box-shadow: 0 0 18px rgba(239, 95, 127, 0.56);
+}
+
+.fx-ring {
+  width: 58px;
+  height: 58px;
+  border: 3px solid rgba(246, 200, 95, 0.58);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.36);
+  animation: ringPop 0.62s ease-out forwards;
+}
+
+.fx-ring.move,
+.fx-ring.launch {
+  border-color: rgba(48, 213, 222, 0.54);
+}
+
+.fx-ring.turn_left,
+.fx-ring.turn_right,
+.fx-ring.repeat,
+.fx-ring.sensor,
+.fx-ring.portal,
+.fx-ring.style {
+  border-color: rgba(143, 92, 255, 0.54);
+}
+
+.fx-ring.bump {
+  border-color: rgba(239, 95, 127, 0.58);
 }
 
 .spark-pop {
@@ -1157,6 +1263,24 @@ button:disabled {
   100% { box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.16), inset 0 -22px 44px rgba(0, 0, 0, 0.24), 0 22px 48px rgba(8, 6, 22, 0.25); }
 }
 
+@keyframes boardMove {
+  0% { transform: translateY(0); }
+  42% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes boardTurn {
+  0% { transform: rotate(0deg); }
+  42% { transform: rotate(0.45deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes boardPortal {
+  0% { filter: saturate(1); transform: scale(1); }
+  45% { filter: saturate(1.35); transform: scale(1.012); }
+  100% { filter: saturate(1); transform: scale(1); }
+}
+
 @keyframes boardWin {
   0% { transform: scale(1); }
   40% { transform: scale(1.015); }
@@ -1173,6 +1297,18 @@ button:disabled {
   0% { transform: translateY(10px) scale(0.86); opacity: 0; }
   18% { opacity: 1; }
   100% { transform: translateY(-46px) scale(1.08); opacity: 0; }
+}
+
+@keyframes particlePop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.2) rotate(var(--spin)); }
+}
+
+@keyframes ringPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.36); }
+  16% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.9); }
 }
 
 .code-panel {

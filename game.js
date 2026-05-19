@@ -12,6 +12,7 @@
   const STORAGE_KEY = "robotDungeonPythonQuest.progress.v2";
   const SETTINGS_KEY = "robotDungeonPythonQuest.profileSettings.v1";
   const BYTE_STYLE_KEY = "robotDungeonPythonQuest.byteStyle.v1";
+  const SFX_KEY = "robotDungeonPythonQuest.sfxEnabled.v1";
 
   const levels = [
     {
@@ -205,6 +206,7 @@
   let missionSparks = 0;
   let missionEnergy = 0;
   let actionTimer = null;
+  let soundEnabled = loadSfxPreference();
   let audioContext = null;
 
   const board = document.getElementById("board");
@@ -225,6 +227,7 @@
   const explorerPlan = document.getElementById("explorerPlan");
   const parentBtn = document.getElementById("parentBtn");
   const rewardsBtn = document.getElementById("rewardsBtn");
+  const soundBtn = document.getElementById("soundBtn");
   const closeParentBtn = document.getElementById("closeParentBtn");
   const closeRewardsBtn = document.getElementById("closeRewardsBtn");
   const exportBtn = document.getElementById("exportBtn");
@@ -405,6 +408,30 @@
     }
   }
 
+  function loadSfxPreference() {
+    try {
+      return localStorage.getItem(SFX_KEY) !== "off";
+    } catch (error) {
+      return true;
+    }
+  }
+
+  function saveSfxPreference() {
+    try {
+      localStorage.setItem(SFX_KEY, soundEnabled ? "on" : "off");
+    } catch (error) {
+      // SFX preference is optional; keep the game playable if storage fails.
+    }
+  }
+
+  function syncSoundButton() {
+    if (!soundBtn) return;
+    soundBtn.textContent = soundEnabled ? "SFX On" : "SFX Off";
+    soundBtn.setAttribute("aria-pressed", String(soundEnabled));
+    soundBtn.classList.toggle("sfx-on", soundEnabled);
+    soundBtn.classList.toggle("sfx-off", !soundEnabled);
+  }
+
   function applyByteStyle() {
     Object.values(byteStyles).forEach((style) => document.body.classList.remove(style.className));
     const style = byteStyles[byteStyle] || byteStyles.sky;
@@ -495,6 +522,7 @@
   function announceAction(type, text = actionWords[type] || "Go Byte!", energy = 4) {
     chargeEnergy(energy);
     setByteMood(text, type === "bump" ? "bump" : type === "win" || type === "collect" ? "happy" : type === "repeat" || type === "sensor" || type === "portal" ? "magic" : "zoom");
+    burstEffect(type);
     if (!actionBanner) return;
     if (actionTimer) clearTimeout(actionTimer);
     actionBanner.textContent = text;
@@ -508,6 +536,10 @@
     if (!state.trail) state.trail = [];
     state.trail.push(key(point));
     if (state.trail.length > 10) state.trail = state.trail.slice(-10);
+  }
+
+  function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
   }
 
   function renderPlayerSwitch() {
@@ -926,6 +958,7 @@
     for (const command of commands) {
       if (token !== runToken) throw new Error("Run stopped.");
       if (command.type === "repeat") {
+        playTone("repeat");
         announceAction("repeat", `Loop x${command.count}!`, 5);
         for (let count = 0; count < command.count; count += 1) {
           await executeCommands(command.body, token);
@@ -935,6 +968,7 @@
 
       if (command.type === "if") {
         const passes = command.test === "wall_ahead" ? wallAhead() : gemHere();
+        playTone("sensor");
         announceAction("sensor", passes ? "Sensor yes!" : "Sensor no!", 3);
         if (passes) await executeCommands(command.body, token);
         continue;
@@ -966,6 +1000,7 @@
       state.steps += 1;
       playTone("turn");
       announceAction("turn_left", actionWords.turn_left, 5);
+      pulseBoard("turn");
       return;
     }
 
@@ -975,6 +1010,7 @@
       state.steps += 1;
       playTone("turn");
       announceAction("turn_right", actionWords.turn_right, 5);
+      pulseBoard("turn");
       return;
     }
 
@@ -1024,13 +1060,18 @@
       const portal = portalAt(next.x, next.y);
       if (portal) {
         state.robot = clonePoint(portal.to);
+        playTone("portal");
         announceAction("portal", actionWords.portal, 10);
         popSpark("Portal pop!", "portal mega");
+        pulseBoard("portal");
       }
       rememberStep(state.robot);
       state.steps += 1;
       playTone("move");
-      if (!portal) announceAction("move", actionWords.move, 7);
+      if (!portal) {
+        announceAction("move", actionWords.move, 7);
+        pulseBoard("move");
+      }
     }
   }
 
@@ -1046,33 +1087,186 @@
     return audioContext;
   }
 
+  function scheduleTone(context, frequency, start, duration, volume, wave = "triangle", slideTo = null) {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = wave;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    if (slideTo) oscillator.frequency.exponentialRampToValueAtTime(slideTo, start + duration);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.03);
+  }
+
+  function scheduleNoise(context, start, duration, volume, tone = "spark") {
+    const length = Math.max(1, Math.floor(context.sampleRate * duration));
+    const buffer = context.createBuffer(1, length, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < length; index += 1) {
+      data[index] = (Math.random() * 2 - 1) * (1 - index / length);
+    }
+
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+    filter.type = tone === "thump" ? "lowpass" : "bandpass";
+    filter.frequency.setValueAtTime(tone === "thump" ? 260 : 2600, start);
+    filter.Q.setValueAtTime(tone === "thump" ? 0.6 : 7, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    source.buffer = buffer;
+    source.connect(filter).connect(gain).connect(context.destination);
+    source.start(start);
+    source.stop(start + duration + 0.02);
+  }
+
   function playTone(type) {
+    if (!soundEnabled) return;
     try {
       const context = soundContext();
       if (!context) return;
       const style = byteStyles[byteStyle] || byteStyles.sky;
-      const tones = {
-        move: [style.tone * 0.78, 0.055, 0.035],
-        turn: [style.tone * 0.58, 0.045, 0.025],
-        collect: [style.tone * 1.18, 0.12, 0.060],
-        win: [style.tone * 1.38, 0.20, 0.075],
-        bump: [170, 0.16, 0.050],
-        start: [style.tone, 0.10, 0.040],
-      };
-      const [frequency, duration, volume] = tones[type] || tones.move;
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = type === "bump" ? "sawtooth" : "triangle";
-      oscillator.frequency.setValueAtTime(frequency, context.currentTime);
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(volume, context.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + duration + 0.02);
+      const base = style.tone;
+      const now = context.currentTime;
+      const playSteps = (steps) => steps.forEach((step) => {
+        scheduleTone(context, step.frequency, now + (step.at || 0), step.duration, step.volume, step.wave, step.slideTo);
+      });
+
+      if (type === "move") {
+        playSteps([
+          { frequency: base * 0.78, slideTo: base * 1.02, duration: 0.075, volume: 0.034, wave: "sine" },
+        ]);
+        scheduleNoise(context, now, 0.055, 0.012, "spark");
+        return;
+      }
+
+      if (type === "turn") {
+        playSteps([
+          { frequency: base * 0.58, duration: 0.045, volume: 0.026, wave: "triangle" },
+          { frequency: base * 0.76, at: 0.045, duration: 0.050, volume: 0.026, wave: "triangle" },
+        ]);
+        return;
+      }
+
+      if (type === "collect") {
+        playSteps([
+          { frequency: base * 1.14, duration: 0.075, volume: 0.040, wave: "triangle" },
+          { frequency: base * 1.48, at: 0.055, duration: 0.095, volume: 0.046, wave: "triangle" },
+          { frequency: base * 1.92, at: 0.13, duration: 0.13, volume: 0.038, wave: "sine" },
+        ]);
+        scheduleNoise(context, now + 0.03, 0.18, 0.020, "spark");
+        return;
+      }
+
+      if (type === "portal") {
+        playSteps([
+          { frequency: base * 0.68, slideTo: base * 1.42, duration: 0.28, volume: 0.035, wave: "sine" },
+          { frequency: base * 1.82, at: 0.10, duration: 0.16, volume: 0.024, wave: "triangle" },
+        ]);
+        scheduleNoise(context, now + 0.04, 0.22, 0.016, "spark");
+        return;
+      }
+
+      if (type === "repeat") {
+        playSteps([0, 1, 2].map((index) => ({
+          frequency: base * (0.74 + index * 0.12),
+          at: index * 0.055,
+          duration: 0.065,
+          volume: 0.026,
+          wave: "square",
+        })));
+        return;
+      }
+
+      if (type === "sensor") {
+        playSteps([
+          { frequency: base * 1.35, duration: 0.035, volume: 0.022, wave: "sine" },
+          { frequency: base * 1.72, at: 0.055, duration: 0.045, volume: 0.022, wave: "sine" },
+        ]);
+        return;
+      }
+
+      if (type === "win") {
+        playSteps([
+          { frequency: base * 0.92, duration: 0.10, volume: 0.044, wave: "triangle" },
+          { frequency: base * 1.16, at: 0.08, duration: 0.12, volume: 0.048, wave: "triangle" },
+          { frequency: base * 1.46, at: 0.17, duration: 0.15, volume: 0.052, wave: "triangle" },
+          { frequency: base * 1.94, at: 0.31, duration: 0.28, volume: 0.042, wave: "sine" },
+        ]);
+        scheduleNoise(context, now + 0.12, 0.36, 0.024, "spark");
+        return;
+      }
+
+      if (type === "bump") {
+        playSteps([
+          { frequency: 180, slideTo: 120, duration: 0.16, volume: 0.048, wave: "sawtooth" },
+        ]);
+        scheduleNoise(context, now, 0.14, 0.024, "thump");
+        return;
+      }
+
+      if (type === "launch" || type === "start") {
+        playSteps([
+          { frequency: base * 0.72, slideTo: base * 1.1, duration: 0.12, volume: 0.034, wave: "triangle" },
+          { frequency: base * 1.42, at: 0.10, duration: 0.10, volume: 0.025, wave: "sine" },
+        ]);
+        return;
+      }
+
+      if (type === "style") {
+        playSteps([
+          { frequency: base, duration: 0.08, volume: 0.034, wave: "triangle" },
+          { frequency: base * 1.33, at: 0.075, duration: 0.12, volume: 0.034, wave: "triangle" },
+        ]);
+        scheduleNoise(context, now + 0.03, 0.13, 0.014, "spark");
+        return;
+      }
+
+      scheduleTone(context, base, now, 0.08, 0.026, "triangle");
     } catch (error) {
       // Sound is a bonus layer. Browsers can block it without affecting gameplay.
     }
+  }
+
+  function burstEffect(type) {
+    if (!fxLayer) return;
+    const counts = {
+      launch: 12,
+      move: 7,
+      turn_left: 8,
+      turn_right: 8,
+      collect: 22,
+      repeat: 14,
+      sensor: 7,
+      portal: 20,
+      bump: 10,
+      win: 36,
+      style: 16,
+    };
+    const count = counts[type] || 8;
+    for (let index = 0; index < count; index += 1) {
+      const particle = document.createElement("span");
+      particle.className = `fx-particle ${type}`;
+      particle.style.setProperty("--x", `${randomBetween(32, 68)}%`);
+      particle.style.setProperty("--y", `${randomBetween(34, 62)}%`);
+      particle.style.setProperty("--tx", `${randomBetween(-130, 130)}px`);
+      particle.style.setProperty("--ty", `${randomBetween(-110, 95)}px`);
+      particle.style.setProperty("--spin", `${randomBetween(-180, 180)}deg`);
+      particle.style.setProperty("--delay", `${randomBetween(0, 0.09)}s`);
+      fxLayer.appendChild(particle);
+      setTimeout(() => particle.remove(), 900);
+    }
+
+    const ring = document.createElement("span");
+    ring.className = `fx-ring ${type}`;
+    ring.style.setProperty("--x", `${randomBetween(40, 60)}%`);
+    ring.style.setProperty("--y", `${randomBetween(38, 58)}%`);
+    fxLayer.appendChild(ring);
+    setTimeout(() => ring.remove(), 720);
   }
 
   function popSpark(text, kind = "spark") {
@@ -1088,8 +1282,8 @@
 
   function pulseBoard(kind) {
     if (!board) return;
-    board.classList.remove("pulse-collect", "pulse-win", "pulse-bump");
-    board.offsetWidth;
+    board.classList.remove("pulse-move", "pulse-turn", "pulse-collect", "pulse-win", "pulse-bump", "pulse-portal");
+    void board.offsetWidth;
     board.classList.add(`pulse-${kind}`);
     setTimeout(() => board.classList.remove(`pulse-${kind}`), 520);
   }
@@ -1105,6 +1299,7 @@
     runToken = token;
     running = true;
     runBtn.disabled = true;
+    playTone("launch");
     announceAction("launch", actionWords.launch, 8);
 
     try {
@@ -1544,7 +1739,7 @@
       byteStyle = button.dataset.byteStyle;
       saveByteStyle();
       applyByteStyle();
-      playTone("start");
+      playTone("style");
       announceAction("style", byteStyles[byteStyle].label, 6);
     });
   });
@@ -1612,6 +1807,14 @@
     welcomeModal.classList.add("hidden");
     if (player === "Explorer") speakMission();
   });
+  if (soundBtn) {
+    soundBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      saveSfxPreference();
+      syncSoundButton();
+      if (soundEnabled) playTone("style");
+    });
+  }
   replayBtn.addEventListener("click", () => {
     successModal.classList.add("hidden");
     initLevel(currentLevelIndex, false, { speak: false });
@@ -1652,6 +1855,7 @@
   window.RobotDungeon = { levels, parseProgram, countCommands };
 
   applyByteStyle();
+  syncSoundButton();
   setupLevelPicker();
   initLevel(0, false, { speak: false });
 })();
